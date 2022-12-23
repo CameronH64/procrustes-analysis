@@ -6,6 +6,8 @@ joblib==1.2.0
 nltk==3.8
 numpy==1.23.5
 regex==2022.10.31
+scikit-learn==1.2.0
 scipy==1.9.3
 smart-open==6.3.0
+threadpoolctl==3.1.0
 tqdm==4.64.1

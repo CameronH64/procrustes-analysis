@@ -1,0 +1,15 @@
+# ===================== DOWNLOAD REUTERS CORPORA =====================
+# Use this code (uncomment it) to download corpora.
+# nltk.download()
+
+# ===================== BRIEF OVERVIEW OF REUTERS CORPORA =====================
+# 90 categories
+# 10788 new documents, 1.3 million words.
+
+# ===================== IMPORTANT NOTE ON PROCRUSTES FUNCTION =====================
+# This function was not designed to handle datasets with different numbers of datapoints (rows).
+# If two data sets have different dimensionality (different number of columns), simply add columns of zeros to the smaller of the two.
+
+# This code runs if an id2word parameter isn't specified. (straight from lsimodel.py)
+# self.id2word = utils.dict_from_corpus(corpus)
+# self.num_terms = len(self.id2word)
