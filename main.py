@@ -14,16 +14,25 @@ from gensim.test.utils import common_dictionary, common_corpus, get_tmpfile
 from gensim.utils import simple_preprocess
 from gensim import corpora
 from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 # ========================= / IMPORTS =========================
 
+############# SETTINGS #############
+
 number_of_file_ids = 10
-all_files = reuters.fileids()
+number_of_topics = 100
+corpus_words = False
+output_to_text_file = True
+print_topics = True
 
-for count, file_id in enumerate(range(0, number_of_file_ids)):
+############# / SETTINGS #############
 
-    print(f"======================= File ID: {count} =======================", all_files[file_id])
+document_feature_matrix_list = []
+all_files = reuters.fileids()       # Retrieve all file id strings.
 
-################ CREATING CORPUS ################
+for count, file_id in enumerate(range(0, number_of_file_ids)):          # Make an LSI model for specified number of documents.
+
+    ################ CREATING CORPUS ################
 
     my_docs = reuters.words(all_files[file_id])           # Retrieve corpus
 
@@ -45,36 +54,51 @@ for count, file_id in enumerate(range(0, number_of_file_ids)):
 
     ################ LSI MODELING ################
 
-    model = LsiModel(corpus=mycorpus, id2word=mydict, num_topics=100)       # Create LSI model
+    if corpus_words is True:
+        model = LsiModel(corpus=mycorpus, id2word=mydict, num_topics=number_of_topics)       # Create LSI model
 
-    # pprint(model.print_topics())          # Pretty print for "paragraph view"
+    else:
+        model = LsiModel(corpus=mycorpus, num_topics=number_of_topics)
 
-    for value in model.print_topics():          # Print LSI model
-        print(value)
+        all_topics = model.print_topics()
+        document_feature_matrix_list.append(all_topics)
 
-    ################ / LSI MODELING ################
+        # [documents][topics][index or topic]
+        # index or topic needs to be always 1 to get the topic. Ignore the index.
 
-    print()
-    print()
+        # Objective: Turn 3D output into 2D.
+        # for x in all_topics:
+        #     for y in all_topics:
+        #         document_feature_matrix_list.append(all_topics[x][y])
+
+        if print_topics is True:
+
+            print(f"======================= File ID: {all_files[file_id]} - {count + 1} =======================")
+
+        for value in model.print_topics():  # Print LSI model
+            print(value)
+        # pprint(model.print_topics())          # Pretty print for "paragraph view"
+
+        print()
+        print()
+
+        ################ / LSI MODELING ################
 
 
-# Output document-feature matrices
+# Output document-feature matrices to text file.
 
+print('Output document-feature matrices to text file.')
+document_feature_matrix_array = np.array(document_feature_matrix_list)
+# np.savetxt(fname='lsi_document_feature_matrix.txt', X=document_feature_matrix_array)
 
+print(document_feature_matrix_array.shape)
+print(document_feature_matrix_array[0][0][1])
 
 # document-feature matrices into Procrustes analysis.
 # one, two = procrustes(model.print_topics(), model2.print_topics())        # Work in progress.
 
 
-# Display results of Procrustes analysis.
-
-
-
-
-
-
-
-
+# Display and output to file results of Procrustes analysis.
 
 
 
