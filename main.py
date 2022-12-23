@@ -16,36 +16,47 @@ from gensim import corpora
 from sklearn.feature_extraction.text import TfidfVectorizer
 # ========================= / IMPORTS =========================
 
+number_of_file_ids = 10
+all_files = reuters.fileids()
+
+for count, file_id in enumerate(range(0, number_of_file_ids)):
+
+    print(f"======================= File ID: {count} =======================", all_files[file_id])
+
 ################ CREATING CORPUS ################
 
-my_docs = reuters.words('test/21486')
+    my_docs = reuters.words(all_files[file_id])           # Retrieve corpus
 
-tokenized_list = [simple_preprocess(doc) for doc in my_docs]      # 4. Create the corpus for the LSI model. First, simple_preprocess for each word in document.
-mydict = corpora.Dictionary()           # 5. Create an empty dictionary.
-mycorpus = [mydict.doc2bow(doc, allow_update=True) for doc in tokenized_list]       # 6. Generate the corpus using that dictionary for each word in the document.
+    tokenized_list = [simple_preprocess(doc) for doc in my_docs]      # 4. Create the corpus for the LSI model. First, simple_preprocess for each word in document.
+    mydict = corpora.Dictionary()           # 5. Create an empty dictionary.
+    mycorpus = [mydict.doc2bow(doc, allow_update=True) for doc in tokenized_list]       # 6. Generate the corpus using that dictionary for each word in the document.
 
-print('mycorpus:')
-# pprint(mycorpus)
-print()
+    # print('mycorpus:')
+    # pprint(mycorpus)
+    # print()
 
-# Printing the corpus, but with words instead.
-word_counts = [[(mydict[identifier], count) for identifier, count in line] for line in mycorpus]
-print('Word counts:')
-# pprint(word_counts)
-
-
-################ / CREATING CORPUS ################
+    # Printing the corpus, but with words instead.
+    word_counts = [[(mydict[identifier], count) for identifier, count in line] for line in mycorpus]
+    # print('Word counts:')
+    # pprint(word_counts)
 
 
+    ################ / CREATING CORPUS ################
 
-################ LSI MODELING ################
+    ################ LSI MODELING ################
 
-model = LsiModel(corpus=mycorpus, id2word=mydict, num_topics=100)
+    model = LsiModel(corpus=mycorpus, id2word=mydict, num_topics=100)       # Create LSI model
 
-for value in model.print_topics():
-    print(value)
+    # pprint(model.print_topics())          # Pretty print for "paragraph view"
 
-################ / LSI MODELING ################
+    for value in model.print_topics():          # Print LSI model
+        print(value)
+
+    ################ / LSI MODELING ################
+
+    print()
+    print()
+
 
 # Output document-feature matrices
 
