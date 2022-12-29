@@ -3,7 +3,6 @@
 # from multiple document-feature matrices
 
 # ========================= IMPORTS =========================
-import numpy as np
 import nltk
 import gensim.models
 from pprint import pprint               # For neater printing of information
@@ -17,119 +16,129 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 # ========================= / IMPORTS =========================
 
-########## SETTINGS ##########
+def print_dictionary(dictionary):
+    for value, value2 in dictionary.items():
+        print(value2)
 
-number_of_file_ids = 5
-number_of_topics = 100
-show_corpus_words = False
-output_to_text_file = True
-print_topics = True
+def print_vectorized_corpus(vectorized_corpus):
 
-########## / SETTINGS ##########
+    print('Vectorized Corpus: ')
 
-running_document_feature_matrix_list = []
-final_document_feature_matrix_list = []
-all_files = reuters.fileids()       # Retrieve all file id strings.
-
-for count, file_id in enumerate(range(0, number_of_file_ids)):          # Make an LSI model for specified number of documents.
-
-    ########## CREATING CORPUS ##########
-
-    my_docs = reuters.words(all_files[file_id])           # Retrieve document from corpus.
-
-    tokenized_document = [simple_preprocess(word) for word in my_docs]              # Create a list of all the words. Simple_preprocess for each word in document.
-    corpus_dictionary = corpora.Dictionary()                                      # Create an empty dictionary.
-    corpus_document = [corpus_dictionary.doc2bow(word, allow_update=True) for word in tokenized_document]       # 6. Generate the corpus using that dictionary for each word in the document.
-
-    ########## / CREATING CORPUS ##########
-
-    ########## PRINTING CORPUS ##########
-    # print('mycorpus:')                # Raw number print
-    # pprint(mycorpus)
-    # print()
-
-    word_counts = [[(corpus_dictionary[identifier], count) for identifier, count in line] for line in corpus_document]
-    # print('Word counts:')             # Dictionary print
-    # pprint(word_counts)
-
-    ########## / PRINTING CORPUS ##########
-
-    ########## LSI MODEL TRAINING ##########
-
-    if show_corpus_words is True:
-        model = LsiModel(corpus=corpus_document, id2word=corpus_dictionary, num_topics=number_of_topics)            # Train the LSI model on the corpus.
-
-    else:
-        model = LsiModel(corpus=corpus_document, num_topics=number_of_topics)       # Train the LSI model on the corpus.
-
-    ########## / LSI MODEL TRAINING ##########
-
-        ########## ACCUMULATING DATA FROM LSI MODEL ##########
-
-        # Can now use this model
-        all_topics = model.print_topics()                       # Store all topics found into a list.
-        running_document_feature_matrix_list.append(all_topics)         # Add topics for this document to running document-feature matrix.
-
-        ########## / ACCUMULATING DATA FROM LSI MODEL ##########
-
-        ########## PRINT TOPICS FOUND IN DOCUMENT ##########
-
-        if print_topics is True:
-
-            print(f"======================= File ID: {all_files[file_id]} - {count + 1} =======================")
-
-            for value in running_document_feature_matrix_list[count]:          # Print LSI model
-                print(value)
-
-            # pprint(model.print_topics())          # Print LSI model with pprint for "paragraph view"
-
-            print()
-            print()
-
-        ########## / PRINT TOPICS FOUND IN DOCUMENT ##########
+    for count, value in enumerate(vectorized_corpus):
+        print(f'Document {count}: ', end='')
+        print(value)
 
 
-########## EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX ##########
+def main():
 
-# [documents][topics][index or topic]
-# index or topic needs to be always 1 to get the topic. Ignore the index.
+    # ========================= SETTINGS =========================
 
-# Remove the index numbers from the document-feature matrix to have only features.
-# for x in range(0, number_of_file_ids):
-#       for y in range(0, len(running_document_feature_matrix_list)):
-#           final_document_feature_matrix_list.append(running_document_feature_matrix_list[x][y][1])
+    number_of_documents = 10
+    number_of_topics = 10
 
-for document in range(0, len(running_document_feature_matrix_list)):
-    final_document_feature_matrix_list.append([topic[1] for topic in running_document_feature_matrix_list[document]])
+    show_corpus_words = False
+    output_to_text_file = True
+    print_topics = True
+    print_vectorization = False
 
-##### PRINT #####
+    print('============ SETTINGS ============')
+    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
+    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
+    print(f'{"Show Corpus Words:":>24} {show_corpus_words!r:>6}')
+    print(f'{"Output Text to File:":>24} {output_to_text_file!r:>6}')
+    print(f'{"Print Topics:":>24} {print_topics!r:>6}')
+    print(f'{"Print Vectorization:":>24} {print_vectorization!r:>6}')
+    print('==================================')
+    print()
 
-# for value in final_document_feature_matrix_list:
-#     pprint(value)
-
-##### / PRINT #####
-
-########## / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX ##########
-
-########## OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE ##########
-# Output document-feature matrices to text file.
-
-# np.savetxt(fname='lsi_document_feature_matrix.txt', X=final_document_feature_matrix_list)
-
-########## / OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE ##########
-
-final_document_feature_matrix_array = np.array(final_document_feature_matrix_list, dtype=object)
-print(final_document_feature_matrix_array.shape)
-
-# document-feature matrices into Procrustes analysis.
-# one, two, disparity = procrustes(final_document_feature_matrix_array, final_document_feature_matrix_array)        # Work in progress.
-
-
-# Display and output to file results of Procrustes analysis.
+    # ========================= / SETTINGS =========================
 
 
 
+    # ========================= SELECTING DOCUMENTS =========================
 
+    reuters_corpus = reuters.fileids()       # Retrieve all file id strings.
+    document_collection = []
+
+    # Aggregate words into documents for proper LSI modeling.
+    for file_id in range(0, number_of_documents):
+        document_collection.append(reuters.words(reuters_corpus[file_id]))
+
+    # pprint(document_collection)
+
+    # ========================= / SELECTING DOCUMENTS =========================
+
+
+
+    # ========================= TRAINING LSI MODEL =========================
+
+    lsi_dictionary = corpora.Dictionary(document_collection)
+    lsi_corpus = [lsi_dictionary.doc2bow(text) for text in document_collection]
+    lsi_model = LsiModel(lsi_corpus, id2word=lsi_dictionary, num_topics=number_of_topics)
+
+    lsi_vectorization = lsi_model[lsi_corpus]
+    print_vectorized_corpus(lsi_vectorization)
+    print()
+
+    # ========================= / TRAINING LSI MODEL =========================
+
+
+
+    # ========================= EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+
+    # [documents][topics][index or topic]
+    # index or topic needs to be always 1 to get the topic. Ignore the index.
+
+    print('Extracting Features: ')
+
+    document_feature_list = []
+
+    for row in lsi_vectorization:
+        new_row = []
+
+        for feature in row:
+            new_row.append(feature[1])
+
+        document_feature_list.append(new_row)
+
+    # ========== PRINT ==========
+    for value in document_feature_list:
+        pprint(value)
+    # ========== PRINT ==========
+
+    document_feature_matrix = np.array(document_feature_list)
+
+    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+
+
+
+    # ========================= OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE =========================
+    # Output document-feature matrices to text file.
+
+    # np.savetxt(fname='lsi_document_feature_matrix.txt', X=final_document_feature_matrix_list)
+
+    # ========================= / OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE =========================
+
+    # final_document_feature_matrix_array = np.array(final_document_feature_matrix_list, dtype=object)
+    # print(final_document_feature_matrix_array.shape)
+
+    # document-feature matrices into Procrustes analysis.
+    # one, two, disparity = procrustes(final_document_feature_matrix_array, final_document_feature_matrix_array)        # Work in progress.
+
+
+    # ========================= LSI PROCRUSTES ANALYSIS =========================
+
+    matrix1, matrix2, disparity = procrustes(document_feature_matrix, document_feature_matrix)
+
+    print('Matrix 1:', matrix1)
+    print('Matrix 2:', matrix2)
+    print('Disparity:', disparity)
+
+    # ========================= / LSI PROCRUSTES ANALYSIS =========================
+
+
+if __name__ == '__main__':
+    main()
 
 
 
