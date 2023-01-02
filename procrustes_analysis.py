@@ -40,6 +40,46 @@ def print_vectorized_corpus(vectorized_corpus):
         print(value)
     print('=======================================================')
 
+def print_modified_procrustes(matrix1, matrix2, disparity):
+    r"""Simplified Vectorized Corpus Printing
+
+    Parameters
+    ----------
+    matrix1 : numpy array
+        The first document-feature matrix.
+    matrix2 : numpy array
+        The second document-feature matrix.
+    disparity : float
+        The M^2 value that denotes disparity.
+
+
+    Returns
+    -------
+    None : N/A
+    """
+
+    # ==================== SETTINGS ====================
+
+    print_matrix_1 = True
+    print_matrix_2 = True
+    print_disparity = True
+
+    # ==================== / SETTINGS ====================
+
+    print()
+
+    if print_matrix_1:
+        print('==================== Matrix 1 ====================')
+        print(matrix1)
+        print()
+    if print_matrix_2:
+        print('==================== Matrix 2 ====================')
+        print(matrix2)
+        print()
+    if print_disparity:
+        print('==================== Disparity (Rounded) ====================')
+        print(round(disparity, 2))
+        print()
 
 def latent_semantic_indexing(document_collection):
     r"""Modified and Condensed Latent Semantic Indexing
@@ -107,6 +147,11 @@ def latent_semantic_indexing(document_collection):
     print('==============================================================')
     print()
 
+    # Save the document-feature matrix (which is a numpy array) to a text file.
+    np.savetxt("distributional_semantic_model_outputs/lsi_document_feature_matrix.txt", X=lsi_document_feature_matrix)
+    # fmt='%.2f' can format the output per entry.
+    # May add a dynamic time appending feature the name above.
+
     return lsi_document_feature_matrix
 
     # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
@@ -172,8 +217,8 @@ if __name__ == '__main__':
 
     # General User Process:
     # 1. Define number of documents to analyze (this is the rows, N)
-    # 2. Do text analysis on those documents, and get its respective matrix.
-    # 3. Do procrustes analysis.
+    # 2. Select a distributional semantic model to use on these documents, returning a document-feature matrix.
+    # 3. Use modified Procrustes Analysis function on two document-feature matrices.
 
     # ================ SETUP ================
     number_of_documents = 10
@@ -184,17 +229,7 @@ if __name__ == '__main__':
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
 
-    print()
-    print('==================== Matrix 1 ====================')
-    print(matrix1)
-    print()
-    print('==================== Matrix 2 ====================')
-    print(matrix2)
-    print()
-    print('==================== Disparity (Rounded) ====================')
-    print(round(disparity, 2))
-
-
+    print_modified_procrustes(matrix1, matrix2, disparity)
 
 
 
