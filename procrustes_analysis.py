@@ -110,12 +110,6 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
         The "array-like" object needed for Procrustes analysis.
     """
 
-    # ========================= LSI PARAMETERS =========================
-
-    # ========================= / LSI PARAMETERS =========================
-
-
-
     # ========================= TRAIN LSI MODEL =========================
 
     lsi_dictionary = corpora.Dictionary(document_collection)
@@ -136,17 +130,20 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
     # [documents][topics][index or topic]
     # index or topic needs to be always 1 to get the topic. Ignore the index.
 
-    lsi_document_feature_list = []
+    lsi_document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
 
-    for row in lsi_vectorization:
-        new_row = []
+    for i in range(len(lsi_vectorization)):
 
-        for feature in row:
-            new_row.append(feature[1])
+        # Cycle through the vectorization, only grabbing the second value, the LSI value.
+        for j in range(len(lsi_vectorization[i])):
+            lsi_document_feature_matrix[i][j] = lsi_vectorization[i][j][1]
 
-        lsi_document_feature_list.append(new_row)
 
-    lsi_document_feature_matrix = np.array(lsi_document_feature_list)           # The final matrix conversion for procrustes analysis.
+
+    # print(lsi_document_feature_matrix)
+
+
+    # lsi_document_feature_matrix = np.array(lsi_document_feature_list)           # The final matrix conversion for procrustes analysis.
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
     np.savetxt("distributional_semantic_model_outputs/lsi_document_feature_matrix.txt", X=lsi_document_feature_matrix)
@@ -295,7 +292,7 @@ if __name__ == '__main__':
 
     # ================ SETUP ================
     number_of_documents = 5
-    number_of_topics = 5
+    number_of_topics = 10
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     document_collection = select_reuters_documents(number_of_documents)
 
@@ -303,13 +300,13 @@ if __name__ == '__main__':
     # ================ SETUP ================
 
     lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
-    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
+    # lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix, number_of_documents, number_of_topics)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
 
-
+    # I have a half-finished feature here. I want to stash this.
 
     # ========================= OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE =========================
     # Output document-feature matrices to text file.
