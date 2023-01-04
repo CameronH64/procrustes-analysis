@@ -92,7 +92,7 @@ def print_settings(number_of_documents, number_of_topics):
     print()
 
 
-def latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True):
+def latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=False):
     r"""Modified and Condensed Latent Semantic Indexing
 
     Parameters
@@ -102,7 +102,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
     number_of_topics : integer
         The number of topics to do LSI on.
     vectorization_print_toggle : boolean
-        If true, print the LSI settings specified above.
+        If true, print the LSI vectorization.
 
     Returns
     -------
@@ -154,6 +154,74 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
     # May add a dynamic time appending feature the name above.
 
     return lsi_document_feature_matrix
+
+    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+
+
+def latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=False):
+    r"""Modified and Condensed Latent Dirichlet Allocation
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        A 2D list in which each row contains a complete Reuters document, and each entry contains one word from it.
+    number_of_topics : integer
+        The number of topics to do LDA on.
+    vectorization_print_toggle : boolean
+        If true, print the LDA vectorization.
+
+    Returns
+    -------
+    lda_document_feature_matrix : numpy array
+        The "array-like" object needed for Procrustes analysis.
+    """
+
+    # ========================= LSI PARAMETERS =========================
+
+    # ========================= / LSI PARAMETERS =========================
+
+
+
+    # ========================= TRAIN LSI MODEL =========================
+
+    lda_dictionary = corpora.Dictionary(document_collection)
+    lda_corpus = [lda_dictionary.doc2bow(text) for text in document_collection]
+    lda_model = LdaModel(lda_corpus, id2word=lda_dictionary, num_topics=number_of_topics)
+
+    lda_vectorization = lda_model[lda_corpus]
+
+    if vectorization_print_toggle:
+        print_vectorized_corpus(lda_vectorization, 'LDA')
+
+    # ========================= / TRAIN LSI MODEL =========================
+
+
+
+    # ========================= EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+
+    # [documents][topics][index or topic]
+    # index or topic needs to be always 1 to get the topic. Ignore the index.
+
+    lda_document_feature_list = []
+
+    for row in lda_vectorization:
+        new_row = []
+
+        for feature in row:
+            new_row.append(feature[1])
+
+        lda_document_feature_list.append(new_row)
+
+    lda_document_feature_matrix = np.array(lda_document_feature_list, dtype=object)           # The final matrix conversion for procrustes analysis.
+
+
+
+    # Save the document-feature matrix (which is a numpy array) to a text file.
+    # np.savetxt("distributional_semantic_model_outputs/lda_document_feature_matrix.txt", X=lda_document_feature_matrix)
+    # fmt='%.2f' can format the output per entry.
+    # May add a dynamic time appending feature the name above.
+
+    return lda_document_feature_matrix
 
     # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
 
@@ -235,6 +303,7 @@ if __name__ == '__main__':
     # ================ SETUP ================
 
     lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
+    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix, number_of_documents, number_of_topics)
 
