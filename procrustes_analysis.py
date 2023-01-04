@@ -20,7 +20,7 @@ from gensim import corpora
 import numpy as np
 # ========================= / IMPORTS =========================
 
-def print_vectorized_corpus(vectorized_corpus):
+def print_vectorized_corpus(vectorized_corpus, model):
     r"""Simplified Vectorized Corpus Printing
 
     Parameters
@@ -28,17 +28,19 @@ def print_vectorized_corpus(vectorized_corpus):
     vectorized_corpus : Gensim object
         The Gensim object in which each row represents a document, and each
         column represents a latent feature and the document's rating.
-
+    model : string
+        To show which model's vectorized corpus is being used.
     Returns
     -------
     None : N/A
     """
 
-    print('================== Vectorized Corpus ==================')
+    print(f'================== {model} Vectorized Corpus ==================')
     for count, value in enumerate(vectorized_corpus):
         print(f'Document {count}: ', end='')
         print(value)
-    print('=======================================================')
+    print('===========================================================')
+
 
 def print_modified_procrustes(matrix1, matrix2, disparity):
     r"""Simplified Vectorized Corpus Printing
@@ -81,13 +83,26 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
         print(round(disparity, 2))
         print()
 
-def latent_semantic_indexing(document_collection):
+
+def print_settings(number_of_documents, number_of_topics):
+    print('================= SETTINGS =================')
+    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
+    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
+    print('============================================')
+    print()
+
+
+def latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True):
     r"""Modified and Condensed Latent Semantic Indexing
 
     Parameters
     ----------
     document_collection : 2D list
         A 2D list in which each row contains a complete Reuters document, and each entry contains one word from it.
+    number_of_topics : integer
+        The number of topics to do LSI on.
+    vectorization_print_toggle : boolean
+        If true, print the LSI settings specified above.
 
     Returns
     -------
@@ -97,22 +112,11 @@ def latent_semantic_indexing(document_collection):
 
     # ========================= LSI PARAMETERS =========================
 
-    number_of_topics        = 10
-    print_vectorization     = True
-
-    print('============== LSI PARAMETERS ==============')
-    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-    print(f'{"Print Vectorization:":>24} {print_vectorization!r:>6}')
-    print('============================================')
-    print()
-
     # ========================= / LSI PARAMETERS =========================
 
 
 
     # ========================= TRAIN LSI MODEL =========================
-
-    print('================== Latent Semantic Indexing ==================')
 
     lsi_dictionary = corpora.Dictionary(document_collection)
     lsi_corpus = [lsi_dictionary.doc2bow(text) for text in document_collection]
@@ -120,8 +124,8 @@ def latent_semantic_indexing(document_collection):
 
     lsi_vectorization = lsi_model[lsi_corpus]
 
-    if print_vectorization:
-        print_vectorized_corpus(lsi_vectorization)
+    if vectorization_print_toggle:
+        print_vectorized_corpus(lsi_vectorization, 'LSI')
 
     # ========================= / TRAIN LSI MODEL =========================
 
@@ -143,9 +147,6 @@ def latent_semantic_indexing(document_collection):
         lsi_document_feature_list.append(new_row)
 
     lsi_document_feature_matrix = np.array(lsi_document_feature_list)           # The final matrix conversion for procrustes analysis.
-
-    print('==============================================================')
-    print()
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
     np.savetxt("distributional_semantic_model_outputs/lsi_document_feature_matrix.txt", X=lsi_document_feature_matrix)
@@ -181,7 +182,7 @@ def select_reuters_documents(number_of_documents):
     return reuters_documents
 
 
-def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
+def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, number_of_documents, number_of_topics):
     r"""A Modified Procrustes Analysis
 
     Parameters
@@ -190,6 +191,10 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
         The first array-like object to be fed into the Procrustes Analysis function.
     document_feature_matrix_2 : numpy array
         The second array-like object to be fed into the Procrustes Analysis function.
+    number_of_documents : integer
+        Integer denoting number of documents.
+    number_of_topics : integer
+        Integer denoting number of topics.
 
     Returns
     -------
@@ -199,7 +204,7 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
         The orientation of document_feature_matrix_2 that best fits document_feature_matrix_1.
         Centered, but not necessarily tr(AAT) = 1.
     disparity : float
-        M^2 value that
+        M^2 value that denotes disparity between input matrices.
     """
 
     # A note from the documentation: the disparity value does not depend on
@@ -221,13 +226,17 @@ if __name__ == '__main__':
     # 3. Use modified Procrustes Analysis function on two document-feature matrices.
 
     # ================ SETUP ================
-    number_of_documents = 10
+    number_of_documents = 5
+    number_of_topics = 5
+    # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     document_collection = select_reuters_documents(number_of_documents)
+
+    print_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection)
+    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
 
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix, number_of_documents, number_of_topics)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
 
