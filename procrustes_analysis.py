@@ -18,6 +18,7 @@ from scipy.spatial import procrustes
 from gensim.models import LsiModel, LdaModel
 from gensim import corpora
 import numpy as np
+from datetime import datetime
 # ========================= / IMPORTS =========================
 
 def print_vectorized_corpus(vectorized_corpus, model):
@@ -29,7 +30,8 @@ def print_vectorized_corpus(vectorized_corpus, model):
         The Gensim object in which each row represents a document, and each
         column represents a latent feature and the document's rating.
     model : string
-        To show which model's vectorized corpus is being used.
+        Shows which model's vectorized corpus is being used.
+
     Returns
     -------
     None : N/A
@@ -53,7 +55,6 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
         The second document-feature matrix.
     disparity : float
         The M^2 value that denotes disparity.
-
 
     Returns
     -------
@@ -85,6 +86,20 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
 
 
 def print_settings(number_of_documents, number_of_topics):
+    r"""Print Settings of Text Analysis
+
+    Parameters
+    ----------
+    number_of_documents : integer
+        The number of documents analyzed.
+    number_of_topics : integer
+        The number of topics found.
+
+    Returns
+    -------
+    None : N/A
+    """
+
     print('================= SETTINGS =================')
     print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
     print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
@@ -98,11 +113,11 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
     Parameters
     ----------
     document_collection : 2D list
-        A 2D list in which each row contains a complete Reuters document, and each entry contains one word from it.
+        A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LSI on.
     vectorization_print_toggle : boolean
-        If true, print the LSI vectorization.
+        Default: False. If true, print the LSI vectorization.
 
     Returns
     -------
@@ -138,21 +153,26 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
         for j in range(len(lsi_vectorization[i])):
             lsi_document_feature_matrix[i][j] = lsi_vectorization[i][j][1]
 
+    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
 
 
-    # print(lsi_document_feature_matrix)
 
+    # ========================= SAVE LSI DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
-    # lsi_document_feature_matrix = np.array(lsi_document_feature_list)           # The final matrix conversion for procrustes analysis.
+    date_now = datetime.today()
+    current_date = date_now.strftime("%Y.%m.%d")
+
+    time_now = datetime.now()
+    current_time = time_now.strftime("%H.%M.%S")
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt("distributional_semantic_model_outputs/lsi_document_feature_matrix.txt", X=lsi_document_feature_matrix)
+    np.savetxt(f'distributional_semantic_model_outputs/lsi_document_feature_matrix_{current_date}T{current_time}Z.txt', X=lsi_document_feature_matrix)
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
 
-    return lsi_document_feature_matrix
+    # ========================= / SAVE LSI DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
-    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+    return lsi_document_feature_matrix
 
 
 def latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=False):
@@ -161,11 +181,11 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, vectorizati
     Parameters
     ----------
     document_collection : 2D list
-        A 2D list in which each row contains a complete Reuters document, and each entry contains one word from it.
+        A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LDA on.
     vectorization_print_toggle : boolean
-        If true, print the LDA vectorization.
+        Default: False. If true, print the LDA vectorization.
 
     Returns
     -------
@@ -199,28 +219,37 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, vectorizati
     # [documents][topics][index or topic]
     # index or topic needs to be always 1 to get the topic. Ignore the index.
 
-    lda_document_feature_list = []
+    lda_document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
 
-    for row in lda_vectorization:
-        new_row = []
+    # Every single entry in the vectorized corpus has the index value need to place into the document-feature matrix (a numpy array).
 
-        for feature in row:
-            new_row.append(feature[1])
+    for document in range(len(lda_vectorization)):
 
-        lda_document_feature_list.append(new_row)
+        for topic_entry in lda_vectorization[document]:      # Do something with the column value.
 
-    lda_document_feature_matrix = np.array(lda_document_feature_list, dtype=object)           # The final matrix conversion for procrustes analysis.
+            topic_placement = topic_entry[0]
+            lda_document_feature_matrix[document][topic_placement] = topic_entry[1]
+
+    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
 
 
+
+    # ========================= SAVE LDA DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
+
+    date_now = datetime.today()
+    current_date = date_now.strftime("%Y.%m.%d")
+
+    time_now = datetime.now()
+    current_time = time_now.strftime("%H.%M.%S")
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    # np.savetxt("distributional_semantic_model_outputs/lda_document_feature_matrix.txt", X=lda_document_feature_matrix)
+    np.savetxt(f'distributional_semantic_model_outputs/lda_document_feature_matrix_{current_date}T{current_time}Z.txt', X=lda_document_feature_matrix)
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
 
-    return lda_document_feature_matrix
+    # ========================= / SAVE LDA DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
-    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+    return lda_document_feature_matrix
 
 
 def select_reuters_documents(number_of_documents):
@@ -229,12 +258,12 @@ def select_reuters_documents(number_of_documents):
     Parameters
     ----------
     number_of_documents : integer
-        An integer defining the number of Reuters documents to analyze (starting from the first document).
+        Defines the number of Reuters documents to analyze (starting from the first document).
 
     Returns
     -------
     reuters_documents : 2D list
-        A 2D list in which each row contains a complete Reuters document, and each entry contains one word from it.
+        Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
     """
 
     reuters_corpus = reuters.fileids()  # Retrieve all file id strings.
@@ -257,9 +286,9 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, nu
     document_feature_matrix_2 : numpy array
         The second array-like object to be fed into the Procrustes Analysis function.
     number_of_documents : integer
-        Integer denoting number of documents.
+        Integer denoting number of documents, used for the appending zeros function.
     number_of_topics : integer
-        Integer denoting number of topics.
+        Integer denoting number of topics, used for the appending zeros function.
 
     Returns
     -------
@@ -276,7 +305,8 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, nu
     # order of input matrices, but the output matrices do. Only the first output matrix
     # is guaranteed to be scaled such that tr(AAT) = 1. (Trace of matrix A times A transposed equals 1).
 
-    # Matrix zero appending pending. (Again, from documentation).
+    # Matrix zero appending function pending. (Again, from documentation).
+    # This function will work on any document-feature matrix inputted.
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
@@ -291,26 +321,18 @@ if __name__ == '__main__':
     # 3. Use modified Procrustes Analysis function on two document-feature matrices.
 
     # ================ SETUP ================
-    number_of_documents = 5
-    number_of_topics = 10
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
+    number_of_documents = 10
+    number_of_topics = 5
     document_collection = select_reuters_documents(number_of_documents)
 
     print_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
-    # lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=True)
+    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=False)
+    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=False)
 
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix, number_of_documents, number_of_topics)
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
 
-    # I have a half-finished feature here. I want to stash this.
-
-    # ========================= OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE =========================
-    # Output document-feature matrices to text file.
-
-    # np.savetxt(fname='lsi_document_feature_matrix.txt', X=final_document_feature_matrix_list)
-
-    # ========================= / OUTPUT DOCUMENT-FEATURE MATRICES TO TEXT FILE =========================
