@@ -141,6 +141,19 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
 
 
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
+    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+
+    Parameters
+    ----------
+    document_feature_matrix : numpy array
+        The document-feature matrix to save to a file.
+    model_type : string
+        An abbreviation of the model used to make the document-feature matrix.
+
+    Returns
+    -------
+    None : N/A
+    """
 
     # Generate ISO 8601 datetime for unique file names.
     date_now = datetime.today()
