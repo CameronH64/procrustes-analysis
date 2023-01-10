@@ -44,7 +44,7 @@ def print_vectorized_corpus(vectorized_corpus, model):
     print('===========================================================')
 
 
-def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1=False, print_matrix_2=False, print_disparity=False):
+def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1_toggle=False, print_matrix_2_toggle=False, print_disparity_toggle=False):
     r"""Simplified Vectorized Corpus Printing
 
     Parameters
@@ -55,11 +55,11 @@ def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1=False,
         The second document-feature matrix.
     disparity : float
         The M^2 value that denotes disparity.
-    print_matrix_1 : boolean
+    print_matrix_1_toggle : boolean
         If true, print the first matrix.
-    print_matrix_2 : boolean
+    print_matrix_2_toggle : boolean
         If true, print the second matrix.
-    print_disparity : boolean
+    print_disparity_toggle : boolean
         If true, print the disparity value.
 
     Returns
@@ -69,21 +69,21 @@ def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1=False,
 
     print()
 
-    if print_matrix_1:
+    if print_matrix_1_toggle:
         print('==================== Matrix 1 ====================')
         print(matrix1)
         print()
-    if print_matrix_2:
+    if print_matrix_2_toggle:
         print('==================== Matrix 2 ====================')
         print(matrix2)
         print()
-    if print_disparity:
+    if print_disparity_toggle:
         print('==================== Disparity (Rounded) ====================')
         print(round(disparity, 2))
         print()
 
 
-def print_settings(number_of_documents, number_of_topics):
+def print_settings(number_of_documents, number_of_topics, print_settings_toggle=False):
     r"""Print Settings of Text Analysis
 
     Parameters
@@ -92,20 +92,22 @@ def print_settings(number_of_documents, number_of_topics):
         The number of documents analyzed.
     number_of_topics : integer
         The number of topics found.
+    print_settings_toggle : boolean
+        If true, print these settings.
 
     Returns
     -------
     None : N/A
     """
+    if print_settings_toggle:
+        print('================= SETTINGS =================')
+        print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
+        print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
+        print('============================================')
+        print()
 
-    print('================= SETTINGS =================')
-    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
-    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-    print('============================================')
-    print()
 
-
-def latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=False):
+def latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
     r"""Modified and Condensed Latent Semantic Indexing
 
     Parameters
@@ -114,7 +116,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
         A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LSI on.
-    vectorization_print_toggle : boolean
+    print_vectorization_toggle : boolean
         Default: False. If true, print the LSI vectorization.
 
     Returns
@@ -131,7 +133,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
 
     lsi_vectorization = lsi_model[lsi_corpus]
 
-    if vectorization_print_toggle:
+    if print_vectorization_toggle:
         print_vectorized_corpus(lsi_vectorization, 'LSI')
 
     # ========================= / TRAIN LSI MODEL =========================
@@ -176,7 +178,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
     return lsi_document_feature_matrix
 
 
-def latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=False):
+def latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
     r"""Modified and Condensed Latent Dirichlet Allocation
 
     Parameters
@@ -185,7 +187,7 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, vectorizati
         A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LDA on.
-    vectorization_print_toggle : boolean
+    print_vectorization_toggle : boolean
         Default: False. If true, print the LDA vectorization.
 
     Returns
@@ -208,7 +210,7 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, vectorizati
 
     lda_vectorization = lda_model[lda_corpus]
 
-    if vectorization_print_toggle:
+    if print_vectorization_toggle:
         print_vectorized_corpus(lda_vectorization, 'LDA')
 
     # ========================= / TRAIN LSI MODEL =========================
@@ -347,13 +349,13 @@ if __name__ == '__main__':
     number_of_topics = 15
     document_collection = select_reuters_documents(number_of_documents)
 
-    print_settings(number_of_documents, number_of_topics)
+    print_settings(number_of_documents, number_of_topics, print_settings_toggle=True)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics)
-    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics)
+    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=True)
+    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=True)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
-    print_modified_procrustes(matrix1, matrix2, disparity, print_disparity=True)
+    print_modified_procrustes(matrix1, matrix2, disparity, print_disparity_toggle=True)
 
