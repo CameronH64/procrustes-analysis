@@ -44,7 +44,7 @@ def print_vectorized_corpus(vectorized_corpus, model):
     print('===========================================================')
 
 
-def print_modified_procrustes(matrix1, matrix2, disparity):
+def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1=False, print_matrix_2=False, print_disparity=False):
     r"""Simplified Vectorized Corpus Printing
 
     Parameters
@@ -55,19 +55,17 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
         The second document-feature matrix.
     disparity : float
         The M^2 value that denotes disparity.
+    print_matrix_1 : boolean
+        If true, print the first matrix.
+    print_matrix_2 : boolean
+        If true, print the second matrix.
+    print_disparity : boolean
+        If true, print the disparity value.
 
     Returns
     -------
     None : N/A
     """
-
-    # ==================== SETTINGS ====================
-
-    print_matrix_1 = True
-    print_matrix_2 = True
-    print_disparity = True
-
-    # ==================== / SETTINGS ====================
 
     print()
 
@@ -147,11 +145,14 @@ def latent_semantic_indexing(document_collection, number_of_topics, vectorizatio
 
     lsi_document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
 
-    for i in range(len(lsi_vectorization)):
+    for document in range(len(lsi_vectorization)):
 
-        # Cycle through the vectorization, only grabbing the second value, the LSI value.
-        for j in range(len(lsi_vectorization[i])):
-            lsi_document_feature_matrix[i][j] = lsi_vectorization[i][j][1]
+        for topic_entry in lsi_vectorization[document]:      # Do something with the column value.
+
+            topic_placement = topic_entry[0]
+            lsi_document_feature_matrix[document][topic_placement] = topic_entry[1]
+
+    # print('LSI document-feature matrix:', lsi_document_feature_matrix)
 
     # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
 
@@ -229,6 +230,8 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, vectorizati
 
             topic_placement = topic_entry[0]
             lda_document_feature_matrix[document][topic_placement] = topic_entry[1]
+
+    # print('LDA document-feature matrix:', lda_document_feature_matrix)
 
     # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
 
@@ -310,6 +313,24 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, nu
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
+    date_now = datetime.today()
+    current_date = date_now.strftime("%Y.%m.%d")
+
+    time_now = datetime.now()
+    current_time = time_now.strftime("%H.%M.%S")
+
+    with open(f'procrustes_analysis_outputs/procrustes_analysis_{current_date}T{current_time}Z.txt', 'w') as f:
+        f.write('===================== Matrix 1 =====================\n')
+        f.write(str(matrix1))
+        f.write('\n\n')
+
+        f.write('===================== Matrix 2 =====================\n')
+        f.write(str(matrix2))
+        f.write('\n\n')
+
+        f.write('===================== Disparity =====================\n')
+        f.write(str(disparity))
+
     return matrix1, matrix2, disparity
 
 
@@ -323,16 +344,16 @@ if __name__ == '__main__':
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     number_of_documents = 10
-    number_of_topics = 5
+    number_of_topics = 15
     document_collection = select_reuters_documents(number_of_documents)
 
     print_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, vectorization_print_toggle=False)
-    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, vectorization_print_toggle=False)
+    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics)
+    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
-    print_modified_procrustes(matrix1, matrix2, disparity)
+    print_modified_procrustes(matrix1, matrix2, disparity, print_disparity=True)
 
