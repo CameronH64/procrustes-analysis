@@ -99,12 +99,45 @@ def print_settings(number_of_documents, number_of_topics, print_settings_toggle=
     -------
     None : N/A
     """
+
     if print_settings_toggle:
         print('================= SETTINGS =================')
         print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
         print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
         print('============================================')
         print()
+
+
+def create_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
+    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+
+    Parameters
+    ----------
+    vectorization : gensim object
+        The distributional semantic model's vectorized corpus.
+    number_of_documents : integer
+        The number of documents that determines the rows to append and fill.
+    number_of_topics : integer
+        The number of documents that determines the rows to append and fill.
+
+    Returns
+    -------
+    document_feature_matrix : numpy array
+        The numpy array that is the document-feature array.
+    """
+
+    document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
+
+    for document in range(len(vectorization)):
+
+        for topic_entry in vectorization[document]:      # Do something with the column value.
+
+            topic_placement = topic_entry[0]
+            document_feature_matrix[document][topic_placement] = topic_entry[1]
+
+    # print('Document-Feature Matrix:', lsi_document_feature_matrix)
+
+    return document_feature_matrix
 
 
 def latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
@@ -138,27 +171,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, print_vector
 
     # ========================= / TRAIN LSI MODEL =========================
 
-
-
-    # ========================= EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
-
-    # [documents][topics][index or topic]
-    # index or topic needs to be always 1 to get the topic. Ignore the index.
-
-    lsi_document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
-
-    for document in range(len(lsi_vectorization)):
-
-        for topic_entry in lsi_vectorization[document]:      # Do something with the column value.
-
-            topic_placement = topic_entry[0]
-            lsi_document_feature_matrix[document][topic_placement] = topic_entry[1]
-
-    # print('LSI document-feature matrix:', lsi_document_feature_matrix)
-
-    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
-
-
+    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorization, number_of_documents, number_of_topics)
 
     # ========================= SAVE LSI DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
@@ -217,25 +230,11 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, print_vecto
 
 
 
-    # ========================= EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+    # ========================= CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
 
-    # [documents][topics][index or topic]
-    # index or topic needs to be always 1 to get the topic. Ignore the index.
+    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorization, number_of_documents, number_of_topics)
 
-    lda_document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
-
-    # Every single entry in the vectorized corpus has the index value need to place into the document-feature matrix (a numpy array).
-
-    for document in range(len(lda_vectorization)):
-
-        for topic_entry in lda_vectorization[document]:      # Do something with the column value.
-
-            topic_placement = topic_entry[0]
-            lda_document_feature_matrix[document][topic_placement] = topic_entry[1]
-
-    # print('LDA document-feature matrix:', lda_document_feature_matrix)
-
-    # ========================= / EXTRACT ONLY FEATURES FOR DOCUMENT-FEATURE MATRIX =========================
+    # ========================= / CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
 
 
 
@@ -352,8 +351,8 @@ if __name__ == '__main__':
     print_settings(number_of_documents, number_of_topics, print_settings_toggle=True)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=True)
-    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=True)
+    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
+    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
