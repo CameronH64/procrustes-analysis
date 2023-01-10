@@ -140,6 +140,22 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
     return document_feature_matrix
 
 
+def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
+
+    # Generate ISO 8601 datetime for unique file names.
+    date_now = datetime.today()
+    current_date = date_now.strftime("%Y.%m.%d")
+
+    time_now = datetime.now()
+    current_time = time_now.strftime("%H.%M.%S")
+
+    # Save the document-feature matrix (which is a numpy array) to a text file.
+    np.savetxt(f'distributional_semantic_model_outputs/{model_type}_document_feature_matrix_{current_date}T{current_time}Z.txt', X=document_feature_matrix)
+
+    # fmt='%.2f' can format the output per entry.
+    # May add a dynamic time appending feature the name above.
+
+
 def latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
     r"""Modified and Condensed Latent Semantic Indexing
 
@@ -171,22 +187,14 @@ def latent_semantic_indexing(document_collection, number_of_topics, print_vector
 
     # ========================= / TRAIN LSI MODEL =========================
 
+
+
+    # ========================= CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
+
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorization, number_of_documents, number_of_topics)
 
-    # ========================= SAVE LSI DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
+    # ========================= / CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
 
-    date_now = datetime.today()
-    current_date = date_now.strftime("%Y.%m.%d")
-
-    time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S")
-
-    # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'distributional_semantic_model_outputs/lsi_document_feature_matrix_{current_date}T{current_time}Z.txt', X=lsi_document_feature_matrix)
-    # fmt='%.2f' can format the output per entry.
-    # May add a dynamic time appending feature the name above.
-
-    # ========================= / SAVE LSI DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
     return lsi_document_feature_matrix
 
@@ -236,22 +244,6 @@ def latent_dirichlet_indexing(document_collection, number_of_topics, print_vecto
 
     # ========================= / CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
 
-
-
-    # ========================= SAVE LDA DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
-
-    date_now = datetime.today()
-    current_date = date_now.strftime("%Y.%m.%d")
-
-    time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S")
-
-    # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'distributional_semantic_model_outputs/lda_document_feature_matrix_{current_date}T{current_time}Z.txt', X=lda_document_feature_matrix)
-    # fmt='%.2f' can format the output per entry.
-    # May add a dynamic time appending feature the name above.
-
-    # ========================= / SAVE LDA DOCUMENT-FEATURE MATRIX TO A TEXT FILE =========================
 
     return lda_document_feature_matrix
 
@@ -345,14 +337,17 @@ if __name__ == '__main__':
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     number_of_documents = 10
-    number_of_topics = 15
+    number_of_topics = 10
     document_collection = select_reuters_documents(number_of_documents)
 
     print_settings(number_of_documents, number_of_topics, print_settings_toggle=True)
     # ================ SETUP ================
 
     lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
+    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+
     lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
+    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
