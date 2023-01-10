@@ -83,7 +83,7 @@ def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1_toggle
         print()
 
 
-def print_settings(number_of_documents, number_of_topics, print_settings_toggle=False):
+def print_corpus_selection_settings(number_of_documents, number_of_topics):
     r"""Print Settings of Text Analysis
 
     Parameters
@@ -92,20 +92,17 @@ def print_settings(number_of_documents, number_of_topics, print_settings_toggle=
         The number of documents analyzed.
     number_of_topics : integer
         The number of topics found.
-    print_settings_toggle : boolean
-        If true, print these settings.
 
     Returns
     -------
     None : N/A
     """
 
-    if print_settings_toggle:
-        print('================= SETTINGS =================')
-        print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
-        print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-        print('============================================')
-        print()
+    print('================= SETTINGS =================')
+    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
+    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
+    print('============================================')
+    print()
 
 
 def create_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
@@ -212,7 +209,7 @@ def latent_semantic_indexing(document_collection, number_of_topics, print_vector
     return lsi_document_feature_matrix
 
 
-def latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
+def latent_dirichlet_allocation(document_collection, number_of_topics, print_vectorization_toggle=False):
     r"""Modified and Condensed Latent Dirichlet Allocation
 
     Parameters
@@ -353,13 +350,13 @@ if __name__ == '__main__':
     number_of_topics = 10
     document_collection = select_reuters_documents(number_of_documents)
 
-    print_settings(number_of_documents, number_of_topics, print_settings_toggle=True)
+    print_corpus_selection_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
     lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
 
-    lda_document_feature_matrix = latent_dirichlet_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
+    lda_document_feature_matrix = latent_dirichlet_allocation(document_collection, number_of_topics, print_vectorization_toggle=False)
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
