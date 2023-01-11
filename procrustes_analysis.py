@@ -44,7 +44,7 @@ def print_vectorized_corpus(vectorized_corpus, model):
     print('===========================================================')
 
 
-def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1_toggle=False, print_matrix_2_toggle=False, print_disparity_toggle=False):
+def print_modified_procrustes(matrix1, matrix2, disparity):
     r"""Simplified Vectorized Corpus Printing
 
     Parameters
@@ -55,12 +55,6 @@ def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1_toggle
         The second document-feature matrix.
     disparity : float
         The M^2 value that denotes disparity.
-    print_matrix_1_toggle : boolean
-        If true, print the first matrix.
-    print_matrix_2_toggle : boolean
-        If true, print the second matrix.
-    print_disparity_toggle : boolean
-        If true, print the disparity value.
 
     Returns
     -------
@@ -69,18 +63,15 @@ def print_modified_procrustes(matrix1, matrix2, disparity, print_matrix_1_toggle
 
     print()
 
-    if print_matrix_1_toggle:
-        print('==================== Matrix 1 ====================')
-        print(matrix1)
-        print()
-    if print_matrix_2_toggle:
-        print('==================== Matrix 2 ====================')
-        print(matrix2)
-        print()
-    if print_disparity_toggle:
-        print('==================== Disparity (Rounded) ====================')
-        print(round(disparity, 2))
-        print()
+    print('==================== Matrix 1 ====================')
+    print(matrix1)
+    print()
+    print('==================== Matrix 2 ====================')
+    print(matrix2)
+    print()
+    print('==================== Disparity (Rounded) ====================')
+    print(round(disparity, 2))
+    print()
 
 
 def print_corpus_selection_settings(number_of_documents, number_of_topics):
@@ -322,7 +313,7 @@ if __name__ == '__main__':
     number_of_topics = 20
     document_collection = select_reuters_documents(number_of_documents)
 
-    print_corpus_selection_settings(number_of_documents, number_of_topics)
+    # print_corpus_selection_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
     # Create LSI document-feature matrices.
@@ -336,8 +327,8 @@ if __name__ == '__main__':
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
 
     # Print vectorized corpora.
-    print_vectorized_corpus(lsi_vectorized, 'LSI')
-    print_vectorized_corpus(lda_vectorized, 'LDA')
+    # print_vectorized_corpus(lsi_vectorized, 'LSI')
+    # print_vectorized_corpus(lda_vectorized, 'LDA')
 
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
@@ -345,5 +336,5 @@ if __name__ == '__main__':
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
-    print_modified_procrustes(matrix1, matrix2, disparity, print_disparity_toggle=True)
+    print_modified_procrustes(matrix1, matrix2, disparity,)
 
