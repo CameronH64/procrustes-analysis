@@ -166,7 +166,25 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     # May add a dynamic time appending feature the name above.
 
 
-def latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False):
+def vectorize_model(model, corpus):
+    r"""Vectorize a Distributional Semantic Model Using the Model and a Corpus
+
+    Parameters
+    ----------
+    model : gensim model
+        The gensim model to be vectorized.
+    corpus : list
+        List of words in corpus.
+
+    Returns
+    -------
+    model[corpus] : gensim.interfaces.TransformedCorpus
+    """
+
+    return model[corpus]
+
+
+def train_latent_semantic_indexing(document_collection, number_of_topics):
     r"""Modified and Condensed Latent Semantic Indexing
 
     Parameters
@@ -175,8 +193,6 @@ def latent_semantic_indexing(document_collection, number_of_topics, print_vector
         A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LSI on.
-    print_vectorization_toggle : boolean
-        Default: False. If true, print the LSI vectorization.
 
     Returns
     -------
@@ -184,32 +200,14 @@ def latent_semantic_indexing(document_collection, number_of_topics, print_vector
         The "array-like" object needed for Procrustes analysis.
     """
 
-    # ========================= TRAIN LSI MODEL =========================
-
     lsi_dictionary = corpora.Dictionary(document_collection)
     lsi_corpus = [lsi_dictionary.doc2bow(text) for text in document_collection]
     lsi_model = LsiModel(lsi_corpus, id2word=lsi_dictionary, num_topics=number_of_topics)
 
-    lsi_vectorization = lsi_model[lsi_corpus]
-
-    if print_vectorization_toggle:
-        print_vectorized_corpus(lsi_vectorization, 'LSI')
-
-    # ========================= / TRAIN LSI MODEL =========================
+    return lsi_model, lsi_corpus
 
 
-
-    # ========================= CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
-
-    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorization, number_of_documents, number_of_topics)
-
-    # ========================= / CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
-
-
-    return lsi_document_feature_matrix
-
-
-def latent_dirichlet_allocation(document_collection, number_of_topics, print_vectorization_toggle=False):
+def train_latent_dirichlet_allocation(document_collection, number_of_topics):
     r"""Modified and Condensed Latent Dirichlet Allocation
 
     Parameters
@@ -218,8 +216,6 @@ def latent_dirichlet_allocation(document_collection, number_of_topics, print_vec
         A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
     number_of_topics : integer
         The number of topics to do LDA on.
-    print_vectorization_toggle : boolean
-        Default: False. If true, print the LDA vectorization.
 
     Returns
     -------
@@ -227,35 +223,11 @@ def latent_dirichlet_allocation(document_collection, number_of_topics, print_vec
         The "array-like" object needed for Procrustes analysis.
     """
 
-    # ========================= LSI PARAMETERS =========================
-
-    # ========================= / LSI PARAMETERS =========================
-
-
-
-    # ========================= TRAIN LSI MODEL =========================
-
     lda_dictionary = corpora.Dictionary(document_collection)
     lda_corpus = [lda_dictionary.doc2bow(text) for text in document_collection]
     lda_model = LdaModel(lda_corpus, id2word=lda_dictionary, num_topics=number_of_topics)
 
-    lda_vectorization = lda_model[lda_corpus]
-
-    if print_vectorization_toggle:
-        print_vectorized_corpus(lda_vectorization, 'LDA')
-
-    # ========================= / TRAIN LSI MODEL =========================
-
-
-
-    # ========================= CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
-
-    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorization, number_of_documents, number_of_topics)
-
-    # ========================= / CONVERT VECTORIZATION CORPUS TO DOCUMENT-FEATURE MATRIX =========================
-
-
-    return lda_document_feature_matrix
+    return lda_model, lda_corpus
 
 
 def select_reuters_documents(number_of_documents):
@@ -347,16 +319,28 @@ if __name__ == '__main__':
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     number_of_documents = 10
-    number_of_topics = 10
+    number_of_topics = 20
     document_collection = select_reuters_documents(number_of_documents)
 
     print_corpus_selection_settings(number_of_documents, number_of_topics)
     # ================ SETUP ================
 
-    lsi_document_feature_matrix = latent_semantic_indexing(document_collection, number_of_topics, print_vectorization_toggle=False)
-    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+    # Create LSI document-feature matrices.
+    lsi_model, lsi_corpus = train_latent_semantic_indexing(document_collection, number_of_topics)
+    lsi_vectorized = vectorize_model(lsi_model, lsi_corpus)
+    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
-    lda_document_feature_matrix = latent_dirichlet_allocation(document_collection, number_of_topics, print_vectorization_toggle=False)
+    # Create LDA document-feature matrices.
+    lda_model, lda_corpus = train_latent_dirichlet_allocation(document_collection, number_of_topics)
+    lda_vectorized = vectorize_model(lda_model, lda_corpus)
+    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
+
+    # Print vectorized corpora.
+    print_vectorized_corpus(lsi_vectorized, 'LSI')
+    print_vectorized_corpus(lda_vectorized, 'LDA')
+
+    # Save document-feature matrices to a file.
+    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
