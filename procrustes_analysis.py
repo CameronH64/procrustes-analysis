@@ -21,7 +21,7 @@ import numpy as np
 from datetime import datetime
 # ========================= / IMPORTS =========================
 
-def print_vectorized_corpus(vectorized_corpus, model):
+def print_vectorized_corpus(vectorized_corpus, model_name):
     r"""Simplified Vectorized Corpus Printing
 
     Parameters
@@ -29,7 +29,7 @@ def print_vectorized_corpus(vectorized_corpus, model):
     vectorized_corpus : Gensim object
         The Gensim object in which each row represents a document, and each
         column represents a latent feature and the document's rating.
-    model : string
+    model_name : string
         Shows which model's vectorized corpus is being used.
 
     Returns
@@ -37,7 +37,7 @@ def print_vectorized_corpus(vectorized_corpus, model):
     None : N/A
     """
 
-    print(f'================== {model} Vectorized Corpus ==================')
+    print(f'================== {model_name} Vectorized Corpus ==================')
     for count, value in enumerate(vectorized_corpus):
         print(f'Document {count}: ', end='')
         print(value)
@@ -336,5 +336,5 @@ if __name__ == '__main__':
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
 
-    print_modified_procrustes(matrix1, matrix2, disparity,)
+    print_modified_procrustes(matrix1, matrix2, disparity)
 
