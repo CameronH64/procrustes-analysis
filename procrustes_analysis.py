@@ -13,10 +13,14 @@
 # ========================= IMPORTS =========================
 import nltk
 from pprint import pprint               # For neater printing of information
+from gensim.corpora import Dictionary
 from nltk.corpus import reuters, stopwords         # Import the reuters dataset (from the download function), also stopwords.
 from scipy.spatial import procrustes
 from gensim.models import LsiModel, LdaModel
 from gensim import corpora
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem.wordnet import WordNetLemmatizer
+from gensim.models import Phrases
 import numpy as np
 from datetime import datetime
 # ========================= / IMPORTS =========================
@@ -245,6 +249,93 @@ def select_reuters_documents(number_of_documents):
     return reuters_documents
 
 
+def preprocess_documents(document_collection):
+    r"""Preprocess Document Collection
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        A 2D list where each row is a document, and each element in each row is a word in said document.
+
+    Returns
+    -------
+    None : N/A
+    """
+
+    # This function does these preprocessing steps (directly from Gensim LDA Model documentation):
+
+    # Converts all words in all documents to lowercase.
+    # Remove numbers, but not words that contain numbers.
+    # Remove words that are only one character.
+    # Lemmatize the documents.
+    # Add bigrams and trigrams to docs.
+    # Remove rare words and common words based on their *document frequency*.
+
+    # https://radimrehurek.com/gensim/auto_examples/tutorials/run_lda.html
+
+    # Debugging
+    # print('Before preprocessing:')
+    # for value in document_collection[0]:
+    #     print(value, end='')
+    #     print(' ', end='')
+    # print()
+
+    # Convert all documents to lowercase.
+    document_collection = [[x.lower() for x in sublist] for sublist in document_collection]
+
+    # Remove numbers, but not words that contain numbers.
+    document_collection = [[token for token in document if not token.isnumeric()] for document in document_collection]
+
+    # Remove words that are only one character.
+    document_collection = [[token for token in document if len(token) > 1] for document in document_collection]
+
+    # Lemmatize the documents.
+    lemmatizer = WordNetLemmatizer()
+    document_collection = [[lemmatizer.lemmatize(token) for token in document] for document in document_collection]
+
+    # Add bigrams and trigrams to docs (only ones that appear 20 times or more).
+    bigram = Phrases(document_collection, min_count=20)
+
+    for idx in range(len(document_collection)):
+        for token in bigram[document_collection[idx]]:
+            if '_' in token:
+
+                # Token is a bigram, add to document.
+                document_collection[idx].append(token)
+                # print(token)
+
+    ###############################################################################
+    # We remove rare words and common words based on their *document frequency*.
+    # Below we remove words that appear in less than 20 documents or in more than
+    # 50% of the documents. Consider trying to remove words only based on their
+    # frequency, or maybe combining that with this approach.
+    #
+
+    # Create a dictionary representation of the documents.
+    dictionary = Dictionary(document_collection)
+
+    # Filter out words that occur less than 20 documents, or more than 50% of the documents.
+    dictionary.filter_extremes(no_below=20, no_above=0.5)
+
+
+    ###############################################################################
+    # Finally, we transform the documents to a vectorized form. We simply compute
+    # the frequency of each word, including the bigrams.
+    #
+
+    # Bag-of-words representation of the documents.
+    corpus = [dictionary.doc2bow(document) for document in document_collection]
+
+    # Debugging
+    # print('After preprocessing:')
+    # for value in document_collection[0]:
+    #     print(value, end='')
+    #     print(' ', end='')
+    # print()
+
+    return document_collection
+
+
 def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, number_of_documents, number_of_topics):
     r"""A Modified Procrustes Analysis
 
@@ -309,11 +400,14 @@ if __name__ == '__main__':
 
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
-    number_of_documents = 10
-    number_of_topics = 20
+    number_of_documents = 100
+    number_of_topics = 5
     document_collection = select_reuters_documents(number_of_documents)
 
-    # print_corpus_selection_settings(number_of_documents, number_of_topics)
+    print_corpus_selection_settings(number_of_documents, number_of_topics)
+
+    document_collection = preprocess_documents(document_collection)
+
     # ================ SETUP ================
 
     # Create LSI document-feature matrices.
