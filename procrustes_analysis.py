@@ -54,11 +54,11 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
     Parameters
     ----------
     matrix1 : numpy array
-        The first document-feature matrix.
+        The first document-feature matrix to be printed.
     matrix2 : numpy array
-        The second document-feature matrix.
+        The second document-feature matrix to be printed.
     disparity : float
-        The M^2 value that denotes disparity.
+        The M^2 value that denotes disparity to be printed.
 
     Returns
     -------
@@ -92,9 +92,9 @@ def print_corpus_selection_settings(number_of_documents, number_of_topics):
     Parameters
     ----------
     number_of_documents : integer
-        The number of documents analyzed.
+        The number of documents analyzed to be printed.
     number_of_topics : integer
-        The number of topics found.
+        The number of topics analyzed to be printed.
 
     Returns
     -------
@@ -170,6 +170,21 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
 
 
 def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
+    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+
+    Parameters
+    ----------
+    matrix1 : numpy array
+        The first matrix to be saved to a file.
+    matrix2 : numpy array
+        The second matrix to be saved to a file.
+    disparity : float
+        The disparity value to be saved to a file.
+
+    Returns
+    -------
+    None : N/A
+    """
 
     date_now = datetime.today()
     current_date = date_now.strftime("%Y.%m.%d")
@@ -299,7 +314,8 @@ def preprocess_documents(document_collection):
 
     Returns
     -------
-    None : N/A
+    dictionary, corpus : tuple
+        The generated dictionary and corpus to be trained with.
     """
 
     # This function does these preprocessing steps (directly from Gensim LDA Model documentation):
