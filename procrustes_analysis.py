@@ -294,14 +294,15 @@ def select_reuters_documents(number_of_documents):
         Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
     """
 
-    reuters_corpus = reuters.fileids()  # Retrieve all file id strings.
-    reuters_documents = []
+    # There are 3,020 test documents, and 7,768 training documents.
 
-    # Aggregate words into documents for proper LSI modeling.
+    training_documents = reuters.fileids()[3019:]       # Retrieve only Reuters training documents.
+    selected_reuters_documents = []
+
     for file_id in range(0, number_of_documents):
-        reuters_documents.append(reuters.words(reuters_corpus[file_id]))
+        selected_reuters_documents.append(reuters.words(training_documents[file_id]))
 
-    return reuters_documents
+    return selected_reuters_documents
 
 
 def preprocess_documents(document_collection):
