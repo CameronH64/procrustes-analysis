@@ -319,8 +319,12 @@ def preprocess_documents(document_collection):
     dictionary = Dictionary(document_collection)
 
     # Filter out words that occur less than 20 documents, or more than 50% of the documents.
-    dictionary.filter_extremes(no_below=20, no_above=0.5)
+    # This line of code serves the purpose of removing unnecessary words, and does this in two ways:
+    # 1. Removing very common words, such as "the", "and", etc. that are very common.
+    # 2. Removing very rare words, such as rare acronyms or specific names that don't carry much meaning.
+    dictionary.filter_extremes(no_below=20, no_above=0.50)
 
+    # Practically speaking, having this line of code results in a lower (likely more accurate) disparity value.
 
     ###############################################################################
     # Finally, we transform the documents to a vectorized form. We simply compute
@@ -409,8 +413,8 @@ if __name__ == '__main__':
 
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
-    number_of_documents = 50
-    number_of_topics = 10
+    number_of_documents = 51
+    number_of_topics = 20
     document_collection = select_reuters_documents(number_of_documents)
 
     print_corpus_selection_settings(number_of_documents, number_of_topics)
@@ -430,8 +434,8 @@ if __name__ == '__main__':
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
 
     # Print vectorized corpora.
-    print_vectorized_corpus(lsi_vectorized, 'LSI')
-    print_vectorized_corpus(lda_vectorized, 'LDA')
+    # print_vectorized_corpus(lsi_vectorized, 'LSI')
+    # print_vectorized_corpus(lda_vectorized, 'LDA')
 
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
