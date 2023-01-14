@@ -161,6 +161,38 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     # May add a dynamic time appending feature the name above.
 
 
+def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
+
+    date_now = datetime.today()
+    current_date = date_now.strftime("%Y.%m.%d")
+
+    time_now = datetime.now()
+    current_time = time_now.strftime("%H.%M.%S")
+
+    with open(f'procrustes_analysis_outputs/procrustes_analysis_{current_date}T{current_time}Z.txt', 'w') as procrustes_file:
+        procrustes_file.write('===================== Matrix 1 =====================\n')
+
+        for document in matrix1:
+            for topic in matrix1:
+                procrustes_file.write(str(topic))
+                procrustes_file.write(str('\n'))
+            procrustes_file.write('\n')
+
+        procrustes_file.write('\n\n')
+
+        procrustes_file.write('===================== Matrix 2 =====================\n')
+        for document in matrix1:
+            for topic in matrix1:
+                procrustes_file.write(str(topic))
+                procrustes_file.write(str('\n'))
+            procrustes_file.write('\n')
+
+        procrustes_file.write('\n\n')
+
+        procrustes_file.write('===================== Disparity =====================\n')
+        procrustes_file.write(str(disparity))
+
+
 def vectorize_model(model, corpus):
     r"""Vectorize a Distributional Semantic Model Using the Model and a Corpus
 
@@ -380,24 +412,6 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, nu
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
-    date_now = datetime.today()
-    current_date = date_now.strftime("%Y.%m.%d")
-
-    time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S")
-
-    with open(f'procrustes_analysis_outputs/procrustes_analysis_{current_date}T{current_time}Z.txt', 'w') as f:
-        f.write('===================== Matrix 1 =====================\n')
-        f.write(str(matrix1))
-        f.write('\n\n')
-
-        f.write('===================== Matrix 2 =====================\n')
-        f.write(str(matrix2))
-        f.write('\n\n')
-
-        f.write('===================== Disparity =====================\n')
-        f.write(str(disparity))
-
     return matrix1, matrix2, disparity
 
 
@@ -442,6 +456,7 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
+    save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
 
