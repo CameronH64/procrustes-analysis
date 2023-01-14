@@ -67,15 +67,23 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
 
     print()
 
-    print('==================== Matrix 1 ====================')
-    print(matrix1)
+    print('===================== Matrix 1 =====================')
+
+    for count, document in enumerate(matrix1):
+        print(f'Document: {count + 1}', document)
+        print()
+
     print()
-    print('==================== Matrix 2 ====================')
-    print(matrix2)
+
+    print('===================== Matrix 2 =====================')
+    for count, document in enumerate(matrix2):
+        print(f'Document {count + 1}:', document)
+        print()
+
     print()
-    print('==================== Disparity (Rounded) ====================')
-    print(round(disparity, 2))
-    print()
+
+    print('===================== Disparity =====================')
+    print(str(disparity))
 
 
 def print_corpus_selection_settings(number_of_documents, number_of_topics):
@@ -172,20 +180,16 @@ def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
     with open(f'procrustes_analysis_outputs/procrustes_analysis_{current_date}T{current_time}Z.txt', 'w') as procrustes_file:
         procrustes_file.write('===================== Matrix 1 =====================\n')
 
-        for document in matrix1:
-            for topic in matrix1:
-                procrustes_file.write(str(topic))
-                procrustes_file.write(str('\n'))
-            procrustes_file.write('\n')
+        for count, document in enumerate(matrix1):
+            procrustes_file.write(f'Document {count+1}: {str(document)}')
+            procrustes_file.write('\n\n')
 
         procrustes_file.write('\n\n')
 
         procrustes_file.write('===================== Matrix 2 =====================\n')
-        for document in matrix1:
-            for topic in matrix1:
-                procrustes_file.write(str(topic))
-                procrustes_file.write(str('\n'))
-            procrustes_file.write('\n')
+        for document in matrix2:
+            procrustes_file.write(f'Document {count+1}: {str(document)}')
+            procrustes_file.write('\n\n')
 
         procrustes_file.write('\n\n')
 
