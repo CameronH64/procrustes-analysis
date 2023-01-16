@@ -43,7 +43,7 @@ def print_vectorized_corpus(vectorized_corpus, model_name):
 
     print(f'================== {model_name} Vectorized Corpus ==================')
     for count, value in enumerate(vectorized_corpus):
-        print(f'Document {count}: ', end='')
+        print(f'Document {count + 1}: ', end='')
         print(value)
     print('===========================================================')
 
