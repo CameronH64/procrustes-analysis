@@ -375,7 +375,9 @@ def preprocess_documents(document_collection):
     # This line of code serves the purpose of removing unnecessary words, and does this in two ways:
     # 1. Removing very common words, such as "the", "and", etc. that are very common.
     # 2. Removing very rare words, such as rare acronyms or specific names that don't carry much meaning.
-    dictionary.filter_extremes(no_below=20, no_above=0.50)
+    document_number = len(document_collection)
+    percentage = .20
+    dictionary.filter_extremes(no_below=document_number * percentage, no_above=0.50)
 
     # Practically speaking, having this line of code results in a lower (likely more accurate) disparity value.
 
