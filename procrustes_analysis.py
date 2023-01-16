@@ -23,6 +23,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from gensim.models import Phrases
 import numpy as np
 from datetime import datetime
+import os
 # ========================= / IMPORTS =========================
 
 def print_vectorized_corpus(vectorized_corpus, model_name):
@@ -155,6 +156,11 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     None : N/A
     """
 
+    path = './document_feature_matrix_outputs'
+    directory_exists = os.path.exists(path)
+    if not directory_exists:
+        os.mkdir(path)
+
     # Generate ISO 8601 datetime for unique file names.
     date_now = datetime.today()
     current_date = date_now.strftime("%Y.%m.%d")
@@ -163,7 +169,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     current_time = time_now.strftime("%H.%M.%S")
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'distributional_semantic_model_outputs/{model_type}_document_feature_matrix_{current_date}T{current_time}Z.txt', X=document_feature_matrix)
+    np.savetxt(f'document_feature_matrix_outputs/{model_type}_document_feature_matrix_{current_date}T{current_time}Z.txt', X=document_feature_matrix)
 
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
@@ -185,6 +191,11 @@ def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
     -------
     None : N/A
     """
+
+    path = './procrustes_analysis_outputs'
+    directory_exists = os.path.exists(path)
+    if not directory_exists:
+        os.mkdir(path)
 
     date_now = datetime.today()
     current_date = date_now.strftime("%Y.%m.%d")
