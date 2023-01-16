@@ -412,7 +412,7 @@ def preprocess_documents(document_collection):
     return dictionary, corpus
 
 
-def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, number_of_documents, number_of_topics):
+def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     r"""A Modified Procrustes Analysis
 
     Parameters
@@ -444,6 +444,22 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, nu
     # Matrix zero appending function pending. (Again, from documentation).
     # This function will work on any document-feature matrix inputted.
 
+    matrix1_topic = document_feature_matrix_1.shape[1]
+    matrix2_topic = document_feature_matrix_2.shape[1]
+
+    print('Before: ')
+    print(document_feature_matrix_1.shape)
+    print(document_feature_matrix_2.shape)
+
+    if matrix1_topic > matrix2_topic:
+        document_feature_matrix_2 = np.pad(document_feature_matrix_2, [(0, 0), (0, matrix1_topic-matrix2_topic)], mode='constant')
+    else:
+        document_feature_matrix_1 = np.pad(document_feature_matrix_1, [(0, 0), (0, matrix2_topic-matrix1_topic)], mode='constant')
+
+    print('After: ')
+    print(document_feature_matrix_1.shape)
+    print(document_feature_matrix_2.shape)
+
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
     return matrix1, matrix2, disparity
@@ -462,19 +478,24 @@ if __name__ == '__main__':
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
     number_of_documents = 51
-    number_of_topics = 20
     document_collection = select_reuters_documents(number_of_documents)
-
-    print_corpus_selection_settings(number_of_documents, number_of_topics)
 
     generic_dictionary, generic_corpus = preprocess_documents(document_collection)
 
     # ================ SETUP ================
 
+    # Setup for LSI
+    number_of_topics = 50
+    print_corpus_selection_settings(number_of_documents, number_of_topics)
+
     # Create LSI document-feature matrices.
     lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
+
+    # Setup for LDA
+    number_of_topics = 20
+    print_corpus_selection_settings(number_of_documents, number_of_topics)
 
     # Create LDA document-feature matrices.
     lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
@@ -489,7 +510,7 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, number_of_documents, number_of_topics)
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
     save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
