@@ -447,18 +447,10 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     matrix1_topic = document_feature_matrix_1.shape[1]
     matrix2_topic = document_feature_matrix_2.shape[1]
 
-    print('Before: ')
-    print(document_feature_matrix_1.shape)
-    print(document_feature_matrix_2.shape)
-
     if matrix1_topic > matrix2_topic:
         document_feature_matrix_2 = np.pad(document_feature_matrix_2, [(0, 0), (0, matrix1_topic-matrix2_topic)], mode='constant')
     else:
         document_feature_matrix_1 = np.pad(document_feature_matrix_1, [(0, 0), (0, matrix2_topic-matrix1_topic)], mode='constant')
-
-    print('After: ')
-    print(document_feature_matrix_1.shape)
-    print(document_feature_matrix_2.shape)
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
