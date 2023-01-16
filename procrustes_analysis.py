@@ -421,10 +421,6 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
         The first array-like object to be fed into the Procrustes Analysis function.
     document_feature_matrix_2 : numpy array
         The second array-like object to be fed into the Procrustes Analysis function.
-    number_of_documents : integer
-        Integer denoting number of documents, used for the appending zeros function.
-    number_of_topics : integer
-        Integer denoting number of topics, used for the appending zeros function.
 
     Returns
     -------
