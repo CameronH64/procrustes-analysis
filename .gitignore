@@ -1,5 +1,5 @@
 .idea
 __pycache__
-distributional_semantic_model_outputs
+document_feature_matrix_outputs
 procrustes_analysis_outputs
 
