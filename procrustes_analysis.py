@@ -178,10 +178,19 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     None : N/A
     """
 
-    path = './document_feature_matrix_outputs'
-    directory_exists = os.path.exists(path)
-    if not directory_exists:
+    # Ensure that this output folder exists so that the individual models will be created as needed.
+    path = f'./document_feature_matrix_outputs'
+    if not os.path.exists(path):
         os.mkdir(path)
+
+    model_folders = ['lsi', 'lda', 'doc2vec', 'bert', 'gpt2']
+
+    # Ensure that all the necessary folders for each model are created.
+    # To add more folders for each model, simply add more entries to the models list.
+    for entry in model_folders:
+        path = f'./document_feature_matrix_outputs/{entry}'
+        if not os.path.exists(path):
+            os.mkdir(path)
 
     # Generate ISO 8601 datetime for unique file names.
     date_now = datetime.today()
