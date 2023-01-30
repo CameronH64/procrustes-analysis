@@ -192,6 +192,8 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
         if not os.path.exists(path):
             os.mkdir(path)
 
+
+
     # Generate ISO 8601 datetime for unique file names.
     date_now = datetime.today()
     current_date = date_now.strftime("%Y.%m.%d")
@@ -200,7 +202,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     current_time = time_now.strftime("%H.%M.%S")
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'document_feature_matrix_outputs/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
+    np.savetxt(f'document_feature_matrix_outputs/{model_type}/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
 
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
