@@ -191,7 +191,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     current_time = time_now.strftime("%H.%M.%S")
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'document_feature_matrix_outputs/{model_type}_document_feature_matrix_{current_date}T{current_time}Z.txt', X=document_feature_matrix)
+    np.savetxt(f'document_feature_matrix_outputs/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
 
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
@@ -225,7 +225,7 @@ def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
-    with open(f'procrustes_analysis_outputs/procrustes_analysis_{current_date}T{current_time}Z.txt', 'w') as procrustes_file:
+    with open(f'procrustes_analysis_outputs/{current_date}T{current_time}Z.txt', 'w') as procrustes_file:
         procrustes_file.write('===================== Matrix 1 =====================\n')
 
         for count, document in enumerate(matrix1):
@@ -494,7 +494,7 @@ if __name__ == '__main__':
     # ================ SETUP ================
 
     # Setup for LSI
-    number_of_topics = 50
+    number_of_topics = 20
     print_corpus_selection_settings(number_of_documents, number_of_topics)
 
     # Create LSI document-feature matrices.
