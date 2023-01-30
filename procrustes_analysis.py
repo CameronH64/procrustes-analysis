@@ -188,10 +188,10 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     # Ensure that all the necessary folders for each model are created.
     # To add more folders for each model, simply add more entries to the models list.
     for entry in model_folders:
-        path = f'./document_feature_matrix_outputs/{entry}'
+        path = os.path.join(path, entry)
         if not os.path.exists(path):
             os.mkdir(path)
-
+        path = f'./document_feature_matrix_outputs'
 
 
     # Generate ISO 8601 datetime for unique file names.
@@ -201,8 +201,11 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
+    file_name = f"{current_date}T{current_time}Z_{model_type}.txt"
+
     # Save the document-feature matrix (which is a numpy array) to a text file.
-    np.savetxt(f'document_feature_matrix_outputs/{model_type}/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
+    np.savetxt(os.path.join(path, model_type, file_name), X=document_feature_matrix)
+    # np.savetxt(f'document_feature_matrix_outputs/{model_type}/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
 
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
@@ -236,7 +239,9 @@ def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
-    with open(f'procrustes_analysis_outputs/{current_date}T{current_time}Z.txt', 'w') as procrustes_file:
+    file_name = f"{current_date}T{current_time}Z.txt"
+
+    with open(os.path.join(path, file_name), 'w') as procrustes_file:
         procrustes_file.write('===================== Matrix 1 =====================\n')
 
         for count, document in enumerate(matrix1):
