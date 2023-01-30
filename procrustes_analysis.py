@@ -8,6 +8,24 @@
 # 3. Do procrustes analysis.
 # ===========================================
 
+# =============== EXAMPLE (USING LSI) ===============
+#     # Setup for LSI
+#     number_of_topics = 50
+#     print_corpus_selection_settings(number_of_documents, number_of_topics)
+#
+#     # Create LSI document-feature matrices.
+#     lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
+#     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
+#     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
+#
+#     # Save document-feature matrices to a file.
+#     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+#
+#     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
+#     save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
+#
+#     modified_procrustes takes two document-feature matrices.
+# ===================================================
 
 
 # ========================= IMPORTS =========================
@@ -40,6 +58,10 @@ def print_vectorized_corpus(vectorized_corpus, model_name):
     Returns
     -------
     None : N/A
+
+    Notes
+    -----
+    This is only a debugging-type function for printing to the screen.
     """
 
     print(f'================== {model_name} Vectorized Corpus ==================')
@@ -437,9 +459,6 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     # order of input matrices, but the output matrices do. Only the first output matrix
     # is guaranteed to be scaled such that tr(AAT) = 1. (Trace of matrix A times A transposed equals 1).
 
-    # Matrix zero appending function pending. (Again, from documentation).
-    # This function will work on any document-feature matrix inputted.
-
     matrix1_topic = document_feature_matrix_1.shape[1]
     matrix2_topic = document_feature_matrix_2.shape[1]
 
@@ -468,6 +487,8 @@ if __name__ == '__main__':
     number_of_documents = 51
     document_collection = select_reuters_documents(number_of_documents)
 
+    # generic_dictionary: a dictionary with identifier numbers and words to match.
+    # generic_corpus: the corpus represented with a list of tuples, x being a word identifier and y being the count.
     generic_dictionary, generic_corpus = preprocess_documents(document_collection)
 
     # ================ SETUP ================
