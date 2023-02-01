@@ -248,7 +248,9 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix1_file), 'w') as matrix1_standardization:
         for document in matrix1:
-            matrix1_standardization.write(str(document))
+            for feature in document:
+                matrix1_standardization.write(str(feature) + " ")
+            matrix1_standardization.write("\n")
 
 
     # 3. Write standardized_matrix_2 to file.
@@ -256,7 +258,9 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix2_file), 'w') as matrix2_standardization:
         for document in matrix2:
-            matrix2_standardization.write(str(document))
+            for feature in document:
+                matrix2_standardization.write(str(feature) + " ")
+            matrix2_standardization.write("\n")
 
 
     # 4. Write disparity to file.
