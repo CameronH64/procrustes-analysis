@@ -39,6 +39,7 @@ from gensim import corpora
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem.wordnet import WordNetLemmatizer
 from gensim.models import Phrases
+from gensim.test.utils import get_tmpfile
 import numpy as np
 from datetime import datetime
 import os
@@ -270,6 +271,37 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
         disparity_value.write(str(disparity))
 
 
+def save_model(model, model_name):
+    # Ensure that this output folder exists so that the individual models will be created as needed.
+    path = f'./saved_models'
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    model_folders = ['lsi', 'lda', 'doc2vec', 'bert', 'gpt2']
+
+    # Ensure that all the necessary folders for each model are created.
+    # To add more folders for each model, simply add more entries to the models list.
+    for entry in model_folders:
+        path = os.path.join(path, entry)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        path = f'./saved_models'
+
+    # Generate information needed for the folder that holds the saved model.
+    current_date = datetime.today().strftime("%Y.%m.%d")
+    current_time = datetime.now().strftime("%H.%M.%S")
+
+    # Generate the name of the model being saved.
+    model_folder = f"{current_date}T{current_time}Z"
+    os.mkdir(os.path.join(path, model_name, model_folder))
+
+    model.save(os.path.join(path, model_name, model_folder, model_folder+"_lsi"))
+
+
+def load_model(model_name):
+    model = lsi_model.load(model_name)
+    return model
+
 
 def vectorize_model(model, corpus):
     r"""Vectorize a Distributional Semantic Model Using the Model and a Corpus
@@ -310,7 +342,6 @@ def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
     # lsi_dictionary = corpora.Dictionary(document_collection)
     # lsi_corpus = [lsi_dictionary.doc2bow(text) for text in document_collection]
     lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
-
     return lsi_model
 
 
@@ -528,6 +559,10 @@ if __name__ == '__main__':
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
+    save_model(lsi_model, "lsi")
+
+
+
 
 
     # Setup for LDA
@@ -552,5 +587,5 @@ if __name__ == '__main__':
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
     save_procrustes_analyses_to_folder(matrix1, matrix2, disparity)
 
-    print_modified_procrustes(matrix1, matrix2, disparity)
+    # print_modified_procrustes(matrix1, matrix2, disparity)
 
