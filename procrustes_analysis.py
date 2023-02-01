@@ -205,13 +205,12 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
     np.savetxt(os.path.join(path, model_type, file_name), X=document_feature_matrix)
-    # np.savetxt(f'document_feature_matrix_outputs/{model_type}/{current_date}T{current_time}Z_{model_type}.txt', X=document_feature_matrix)
 
     # fmt='%.2f' can format the output per entry.
     # May add a dynamic time appending feature the name above.
 
 
-def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
+def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
     r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
 
     Parameters
@@ -239,26 +238,33 @@ def save_procrustes_analysis_to_file(matrix1, matrix2, disparity):
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
-    file_name = f"{current_date}T{current_time}Z.txt"
+    # 1. Make the procrustes folder.
+    procrustes_folder = f"{current_date}T{current_time}Z"
+    os.mkdir(os.path.join(path, procrustes_folder))
 
-    with open(os.path.join(path, file_name), 'w') as procrustes_file:
-        procrustes_file.write('===================== Matrix 1 =====================\n')
 
-        for count, document in enumerate(matrix1):
-            procrustes_file.write(f'Document {count+1}: {str(document)}')
-            procrustes_file.write('\n\n')
+    # 2. Write standardized_matrix_1 to file.
+    procrustes_matrix1_file = f"{current_date}T{current_time}Z_standardized_matrix_1.txt"
 
-        procrustes_file.write('\n\n')
+    with open(os.path.join(path, procrustes_folder, procrustes_matrix1_file), 'w') as matrix1_standardization:
+        for document in matrix1:
+            matrix1_standardization.write(str(document))
 
-        procrustes_file.write('===================== Matrix 2 =====================\n')
+
+    # 3. Write standardized_matrix_2 to file.
+    procrustes_matrix2_file = f"{current_date}T{current_time}Z_standardized_matrix_2.txt"
+
+    with open(os.path.join(path, procrustes_folder, procrustes_matrix2_file), 'w') as matrix2_standardization:
         for document in matrix2:
-            procrustes_file.write(f'Document {count+1}: {str(document)}')
-            procrustes_file.write('\n\n')
+            matrix2_standardization.write(str(document))
 
-        procrustes_file.write('\n\n')
 
-        procrustes_file.write('===================== Disparity =====================\n')
-        procrustes_file.write(str(disparity))
+    # 4. Write disparity to file.
+    disparity_filename = f"{current_date}T{current_time}Z_disparity.txt"
+
+    with open(os.path.join(path, procrustes_folder, disparity_filename), 'w') as disparity_value:
+        disparity_value.write(str(disparity))
+
 
 
 def vectorize_model(model, corpus):
@@ -518,6 +524,8 @@ if __name__ == '__main__':
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
+
+
     # Setup for LDA
     number_of_topics = 20
     print_corpus_selection_settings(number_of_documents, number_of_topics)
@@ -526,6 +534,8 @@ if __name__ == '__main__':
     lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
+
+
 
     # Print vectorized corpora.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
@@ -536,7 +546,7 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity)
 
     print_modified_procrustes(matrix1, matrix2, disparity)
 
