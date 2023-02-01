@@ -295,7 +295,7 @@ def save_model(model, model_name):
     model_folder = f"{current_date}T{current_time}Z"
     os.mkdir(os.path.join(path, model_name, model_folder))
 
-    model.save(os.path.join(path, model_name, model_folder, model_folder+"_lsi"))
+    model.save(os.path.join(path, model_name, model_folder, model_folder+"_"+model_name))
 
 
 def load_model(model_name):
@@ -559,10 +559,6 @@ if __name__ == '__main__':
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
-    save_model(lsi_model, "lsi")
-
-
-
 
 
     # Setup for LDA
@@ -574,6 +570,11 @@ if __name__ == '__main__':
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
 
+
+
+    # Save models to file.
+    save_model(lsi_model, "lsi")
+    save_model(lda_model, "lda")
 
 
     # Print vectorized corpora.
