@@ -298,9 +298,19 @@ def save_model(model, model_name):
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
 
-def load_model(model_name):
-    model = lsi_model.load(model_name)
-    return model
+def load_model(model_type, model_timestamp):
+    # Set the folder path for the models to be loaded.
+    model_path = fr'.\saved_models\{model_type}'
+
+    # Generate a list models to be loaded. Ensure only folders are added to said list.
+    # model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
+
+    model_to_load = os.path.join(model_path, model_timestamp, model_timestamp +'.' + model_type)
+
+    if model_type == 'lsi':
+        return LsiModel.load(model_to_load)
+    elif model_type == 'lda':
+        return LdaModel.load(model_to_load)
 
 
 def vectorize_model(model, corpus):
@@ -555,7 +565,10 @@ if __name__ == '__main__':
     print_corpus_selection_settings(number_of_documents, number_of_topics)
 
     # Create LSI document-feature matrices.
-    lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
+    # lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
+
+    # save_model(lsi_model, "lsi")
+    lsi_model = load_model('lsi', '2023.02.04T13.27.37Z')
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
@@ -566,15 +579,13 @@ if __name__ == '__main__':
     print_corpus_selection_settings(number_of_documents, number_of_topics)
 
     # Create LDA document-feature matrices.
-    lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
+    # lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
+
+    # save_model(lda_model, "lda")
+    lda_model = load_model('lda', '2023.02.04T13.27.37Z')
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
 
-
-
-    # Save models to file.
-    save_model(lsi_model, "lsi")
-    save_model(lda_model, "lda")
 
 
     # Print vectorized corpora.
