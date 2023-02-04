@@ -46,11 +46,11 @@ import os
 # ========================= / IMPORTS =========================
 
 def print_vectorized_corpus(vectorized_corpus, model_name):
-    r"""Simplified Vectorized Corpus Printing
+    r"""Simplified Vectorized Corpus Print
 
     Parameters
     ----------
-    vectorized_corpus : Gensim object
+    vectorized_corpus : gensim object
         The Gensim object in which each row represents a document, and each
         column represents a latent feature and the document's rating.
     model_name : string
@@ -73,7 +73,7 @@ def print_vectorized_corpus(vectorized_corpus, model_name):
 
 
 def print_modified_procrustes(matrix1, matrix2, disparity):
-    r"""Simplified Vectorized Corpus Printing
+    r"""Simplified Vectorized Corpus Print
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
 
 
 def print_corpus_selection_settings(number_of_documents, number_of_topics):
-    r"""Print Settings of Text Analysis
+    r"""Text Analysis Settings Print
 
     Parameters
     ----------
@@ -165,14 +165,14 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
 
 
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
-    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+    r"""Save Document-feature Matrix to File
 
     Parameters
     ----------
     document_feature_matrix : numpy array
         The document-feature matrix to save to a file.
     model_type : string
-        An abbreviation of the model used to make the document-feature matrix.
+        An abbreviation of the model used to name the newly generated file.
 
     Returns
     -------
@@ -212,7 +212,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
 
 
 def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
-    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+    r"""Save Procrustes Analyses Results to a Folder
 
     Parameters
     ----------
@@ -272,6 +272,20 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
 
 
 def save_model(model, model_name):
+    r"""Save a Model to Files
+
+    Parameters
+    ----------
+    model : gensim.models.lsimodel.LsiModel
+        The string that determines what model is being saved.
+    model_name : string
+        The string that determines both where the model is saved and how the files are named.
+
+    Returns
+    -------
+    None : N/A
+    """
+
     # Ensure that this output folder exists so that the individual models will be created as needed.
     path = f'./saved_models'
     if not os.path.exists(path):
@@ -299,13 +313,27 @@ def save_model(model, model_name):
 
 
 def load_model(model_type, model_timestamp):
+    r"""Load a Model from Files
+
+    Parameters
+    ----------
+    model_type : string
+        The string that sets the model path and type of model to be loaded.
+    model_timestamp : string
+        The string that specifies which model to load, after the type is selected.
+
+    Returns
+    -------
+    model : gensim model
+    """
+
     # Set the folder path for the models to be loaded.
     model_path = fr'.\saved_models\{model_type}'
 
     # Generate a list models to be loaded. Ensure only folders are added to said list.
     # model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
 
-    model_to_load = os.path.join(model_path, model_timestamp, model_timestamp +'.' + model_type)
+    model_to_load = os.path.join(model_path, model_timestamp, model_timestamp+'.'+model_type)
 
     if model_type == 'lsi':
         return LsiModel.load(model_to_load)
@@ -314,7 +342,7 @@ def load_model(model_type, model_timestamp):
 
 
 def vectorize_model(model, corpus):
-    r"""Vectorize a Distributional Semantic Model Using the Model and a Corpus
+    r"""Vectorize a Model Using the Model and a Corpus
 
     Parameters
     ----------
@@ -349,8 +377,6 @@ def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
         The "array-like" object needed for Procrustes analysis.
     """
 
-    # lsi_dictionary = corpora.Dictionary(document_collection)
-    # lsi_corpus = [lsi_dictionary.doc2bow(text) for text in document_collection]
     lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
     return lsi_model
 
@@ -373,15 +399,13 @@ def train_latent_dirichlet_allocation(dictionary, corpus, number_of_topics):
         The "array-like" object needed for Procrustes analysis.
     """
 
-    # lda_dictionary = corpora.Dictionary(document_collection)
-    # lda_corpus = [lda_dictionary.doc2bow(text) for text in document_collection]
     lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
 
     return lda_model
 
 
 def select_reuters_documents(number_of_documents):
-    r"""Select Reuters Documents
+    r"""Select Reuters Documents to Analyze
 
     Parameters
     ----------
@@ -406,7 +430,7 @@ def select_reuters_documents(number_of_documents):
 
 
 def preprocess_documents(document_collection):
-    r"""Preprocess Document Collection
+    r"""Preprocess the Document Collection
 
     Parameters
     ----------
@@ -502,7 +526,7 @@ def preprocess_documents(document_collection):
 
 
 def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
-    r"""A Modified Procrustes Analysis
+    r"""Modified Procrustes Analysis
 
     Parameters
     ----------
