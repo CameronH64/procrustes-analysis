@@ -295,7 +295,7 @@ def save_model(model, model_name):
     model_folder = f"{current_date}T{current_time}Z"
     os.mkdir(os.path.join(path, model_name, model_folder))
 
-    model.save(os.path.join(path, model_name, model_folder, model_folder+"_"+model_name))
+    model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
 
 def load_model(model_name):
