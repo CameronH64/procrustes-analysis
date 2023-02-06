@@ -8,24 +8,6 @@
 # 3. Do procrustes analysis.
 # ===========================================
 
-# =============== EXAMPLE (USING LSI) ===============
-#     # Setup for LSI
-#     number_of_topics = 50
-#     print_corpus_selection_settings(number_of_documents, number_of_topics)
-#
-#     # Create LSI document-feature matrices.
-#     lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
-#     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
-#     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
-#
-#     # Save document-feature matrices to a file.
-#     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
-#
-#     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
-#     save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
-#
-#     modified_procrustes takes two document-feature matrices.
-# ===================================================
 
 
 # ========================= IMPORTS =========================
@@ -575,7 +557,7 @@ if __name__ == '__main__':
 
     # ================ SETUP ================
     # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
-    number_of_documents = 51
+    number_of_documents = 50
     document_collection = select_reuters_documents(number_of_documents)
 
     # generic_dictionary: a dictionary with identifier numbers and words to match.
