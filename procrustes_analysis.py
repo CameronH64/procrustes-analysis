@@ -146,7 +146,7 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
     return document_feature_matrix
 
 
-def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
+def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k):
     r"""Save Document-feature Matrix to File
 
     Parameters
@@ -184,7 +184,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type):
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
-    file_name = f"{current_date}T{current_time}Z_{model_type}.txt"
+    file_name = f"{current_date}T{current_time}Z_{model_type}_k{k}.txt"
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
     np.savetxt(os.path.join(path, model_type, file_name), X=document_feature_matrix)
@@ -574,31 +574,39 @@ if __name__ == '__main__':
 
     # ================ SETUP ================
 
+    # ================ LSI ==================
+
     # Setup for LSI
-    number_of_topics = 20
-    print_corpus_selection_settings(number_of_documents, number_of_topics)
+    lsi_k = 20
+    print_corpus_selection_settings(number_of_documents, lsi_k)
 
     # Create LSI document-feature matrices.
-    # lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
+    lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, lsi_k)
 
-    # save_model(lsi_model, "lsi")
-    lsi_model = load_model('lsi', model_index=5)
+    save_model(lsi_model, "lsi")
+    # lsi_model = load_model('lsi', model_index=0)
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
-    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
+    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
+
+    # ================ / LSI ==================
 
 
+
+    # ================ LDA ==================
 
     # Setup for LDA
-    number_of_topics = 20
-    print_corpus_selection_settings(number_of_documents, number_of_topics)
+    lda_k = 10
+    print_corpus_selection_settings(number_of_documents, lda_k)
 
     # Create LDA document-feature matrices.
-    # lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
+    lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, lda_k)
 
-    # save_model(lda_model, "lda")
-    lda_model = load_model('lda', model_index=0)
+    save_model(lda_model, "lda")
+    # lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
-    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
+    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
+
+    # ================ / LDA ==================
 
 
 
@@ -607,8 +615,8 @@ if __name__ == '__main__':
     # print_vectorized_corpus(lda_vectorized, 'LDA')
 
     # Save document-feature matrices to a file.
-    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
-    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda')
+    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
+    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
     save_procrustes_analyses_to_folder(matrix1, matrix2, disparity)
