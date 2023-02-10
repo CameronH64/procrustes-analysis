@@ -294,15 +294,15 @@ def save_model(model, model_name):
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
 
-def load_model(model_type, model_timestamp):
+def load_model(model_type, model_index=0):
     r"""Load a Model from Files
 
     Parameters
     ----------
     model_type : string
         The string that sets the model path and type of model to be loaded.
-    model_timestamp : string
-        The string that specifies which model to load, after the type is selected.
+    model_index : integer
+        The integer that specifies which model to load, after the type is selected.
 
     Returns
     -------
@@ -312,9 +312,17 @@ def load_model(model_type, model_timestamp):
     # Set the folder path for the models to be loaded.
     model_path = fr'.\saved_models\{model_type}'
 
-    # Generate a list models to be loaded. Ensure only folders are added to said list.
-    # model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
+    # Generate a list of models to be loaded. Ensure only folders are added to said list.
+    model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
 
+    if model_index < 0:
+        print("Negative model_index is not valid. model_index is reset to 0.")
+        model_index = 0
+    elif model_index > len(model_folders):
+        print("model_index value exceeds the possible models to load. model_index is reset to a value to load the most recent model.")
+        model_index = len(model_folders) - 1
+
+    model_timestamp = model_folders[model_index]
     model_to_load = os.path.join(model_path, model_timestamp, model_timestamp+'.'+model_type)
 
     if model_type == 'lsi':
@@ -574,7 +582,7 @@ if __name__ == '__main__':
     # lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
 
     # save_model(lsi_model, "lsi")
-    lsi_model = load_model('lsi', '2023.02.04T13.27.37Z')
+    lsi_model = load_model('lsi', model_index=5)
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
 
@@ -588,7 +596,7 @@ if __name__ == '__main__':
     # lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, number_of_topics)
 
     # save_model(lda_model, "lda")
-    lda_model = load_model('lda', '2023.02.04T13.27.37Z')
+    lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, number_of_topics)
 
