@@ -155,6 +155,8 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
         The document-feature matrix to save to a file.
     model_type : string
         An abbreviation of the model used to name the newly generated file.
+    k : integer
+        The value for number of topics.
 
     Returns
     -------
@@ -184,7 +186,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     time_now = datetime.now()
     current_time = time_now.strftime("%H.%M.%S")
 
-    file_name = f"{current_date}T{current_time}Z_{model_type}_k{k}.txt"
+    file_name = f"{current_date}T{current_time}Z_{model_type}_rows_{len(document_feature_matrix)}_k_{k}.txt"
 
     # Save the document-feature matrix (which is a numpy array) to a text file.
     np.savetxt(os.path.join(path, model_type, file_name), X=document_feature_matrix)
@@ -193,7 +195,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     # May add a dynamic time appending feature the name above.
 
 
-def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
+def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     r"""Save Procrustes Analyses Results to a Folder
 
     Parameters
@@ -204,6 +206,10 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
         The second matrix to be saved to a file.
     disparity : float
         The disparity value to be saved to a file.
+    k1 : integer
+        The value for matrix 1's number of topics.
+    k2 : integer
+        The value for matrix 2's number of topics.
 
     Returns
     -------
@@ -222,12 +228,14 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
     current_time = time_now.strftime("%H.%M.%S")
 
     # 1. Make the procrustes folder.
-    procrustes_folder = f"{current_date}T{current_time}Z"
+    # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
+    # "rows" is the number of documents. Also, for simplicity, this is derived from the length of one matrix, not as a function argument.
+    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(matrix1)}_k1_{k1}_k2_{k2}"
     os.mkdir(os.path.join(path, procrustes_folder))
 
 
     # 2. Write standardized_matrix_1 to file.
-    procrustes_matrix1_file = f"{current_date}T{current_time}Z_standardized_matrix_1.txt"
+    procrustes_matrix1_file = f"{current_date}T{current_time}Z_standardized_matrix_1_k_{k1}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix1_file), 'w') as matrix1_standardization:
         for document in matrix1:
@@ -237,7 +245,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
 
 
     # 3. Write standardized_matrix_2 to file.
-    procrustes_matrix2_file = f"{current_date}T{current_time}Z_standardized_matrix_2.txt"
+    procrustes_matrix2_file = f"{current_date}T{current_time}Z_standardized_matrix_2_k_{k2}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix2_file), 'w') as matrix2_standardization:
         for document in matrix2:
@@ -253,7 +261,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity):
         disparity_value.write(str(disparity))
 
 
-def save_model(model, model_name):
+def save_model(model, model_name, k, rows):
     r"""Save a Model to Files
 
     Parameters
@@ -262,6 +270,10 @@ def save_model(model, model_name):
         The string that determines what model is being saved.
     model_name : string
         The string that determines both where the model is saved and how the files are named.
+    k : integer
+        The value for the model's number of topics.
+    rows : integer
+        The value for how many documents the model was trained on.
 
     Returns
     -------
@@ -288,7 +300,7 @@ def save_model(model, model_name):
     current_time = datetime.now().strftime("%H.%M.%S")
 
     # Generate the name of the model being saved.
-    model_folder = f"{current_date}T{current_time}Z"
+    model_folder = f"{current_date}T{current_time}Z_rows_{rows}_k_{k}"
     os.mkdir(os.path.join(path, model_name, model_folder))
 
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
@@ -564,15 +576,32 @@ if __name__ == '__main__':
     # 6. Use modified Procrustes Analysis function on two document-feature matrices made with steps 1-5.
 
     # ================ SETUP ================
-    # Dimensions of proper document-feature matrix is number_of_documents x number_of_topics.
+    # VERY IMPORTANT NOTE ABOUT document_collection VARIABLE:
+    # document_collection MUST be a list such that:
+    # - Each entry (row) in the list represents a document
+    # - Each entry in each row is a string for each word.
+    # Some examples on the internet show each document as one long string, but the reuters
+    # corpus is actually helping out by separating it into distinct words first. This format is
+    # required for the models to do their analysis.
+
+    # Example:
+    # [['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],
+    #  ['COMPUTER', 'TERMINAL', 'SYSTEMS', '&', 'lt', ';', ...],
+    #  ['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
+    #  ['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
+
     number_of_documents = 50
     document_collection = select_reuters_documents(number_of_documents)
 
-    # generic_dictionary: a dictionary with identifier numbers and words to match.
-    # generic_corpus: the corpus represented with a list of tuples, x being a word identifier and y being the count.
+    pprint(document_collection)
+
+    # generic_dictionary:   A dictionary with identifier numbers and words to match.
+    # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
     generic_dictionary, generic_corpus = preprocess_documents(document_collection)
 
     # ================ SETUP ================
+
+
 
     # ================ LSI ==================
 
@@ -583,7 +612,7 @@ if __name__ == '__main__':
     # Create LSI document-feature matrices.
     lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, lsi_k)
 
-    save_model(lsi_model, "lsi")
+    save_model(lsi_model, "lsi", lsi_k, number_of_documents)
     # lsi_model = load_model('lsi', model_index=0)
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
@@ -601,7 +630,7 @@ if __name__ == '__main__':
     # Create LDA document-feature matrices.
     lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, lda_k)
 
-    save_model(lda_model, "lda")
+    save_model(lda_model, "lda", lda_k, number_of_documents)
     # lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
@@ -610,7 +639,7 @@ if __name__ == '__main__':
 
 
 
-    # Print vectorized corpora.
+    # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
     # print_vectorized_corpus(lda_vectorized, 'LDA')
 
@@ -618,8 +647,10 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
 
+    # Modified Procrustes Analysis
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k)
 
+    # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
 
