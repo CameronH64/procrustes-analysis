@@ -27,6 +27,32 @@ from datetime import datetime
 import os
 # ========================= / IMPORTS =========================
 
+# This class is to group together different, but related data for Procrustes analysis.
+# This is so you'll much less loose variables in main or whatever coding space you use.
+# Also, it helps with conceptualizing the data; in order to use any of these variables, you must
+# explicitly use that variable, and then use the respective getter.
+class ProcrustesBundle:
+    def __init__(self, model1_name, model2_name, disparity=None, matrix1=None, matrix2=None):
+        self.disparity = disparity
+        self.matrix1 = matrix1
+        self.matrix2 = matrix2
+        self.model1_name = model1_name
+        self.model2_name = model2_name
+
+    def set_disparity(self, disparity):         self.disparity = disparity
+    def set_matrix1(self, matrix1):             self.matrix1 = matrix1
+    def set_matrix2(self, matrix2):             self.matrix2 = matrix2
+    def set_model1_name(self, model1_name):     self.model1_name = model1_name
+    def set_model2_name(self, model2_name):     self.model2_name = model2_name
+
+    def get_disparity(self):            return self.disparity
+    def get_matrix1(self):              return self.matrix1
+    def get_matrix2(self):              return self.matrix2
+    def get_model1_name(self):          return self.model1_name
+    def get_model2_name(self):          return self.model2_name
+
+
+
 def print_vectorized_corpus(vectorized_corpus, model_name):
     r"""Simplified Vectorized Corpus Print
 
@@ -195,17 +221,13 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     # May add a dynamic time appending feature the name above.
 
 
-def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
+def save_procrustes_analyses_to_folder(bundle, k1, k2):
     r"""Save Procrustes Analyses Results to a Folder
 
     Parameters
     ----------
-    matrix1 : numpy array
-        The first matrix to be saved to a file.
-    matrix2 : numpy array
-        The second matrix to be saved to a file.
-    disparity : float
-        The disparity value to be saved to a file.
+    bundle : ProcrustesBundle
+        Bundle object that holds necessary Procrustes data.
     k1 : integer
         The value for matrix 1's number of topics.
     k2 : integer
@@ -230,7 +252,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     # 1. Make the procrustes folder.
     # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
     # "rows" is the number of documents. Also, for simplicity, this is derived from the length of one matrix, not as a function argument.
-    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(matrix1)}_k1_{k1}_k2_{k2}"
+    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(bundle.get_matrix1())}_k1_{k1}_k2_{k2}"
     os.mkdir(os.path.join(path, procrustes_folder))
 
 
@@ -238,7 +260,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     procrustes_matrix1_file = f"{current_date}T{current_time}Z_standardized_matrix_1_k_{k1}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix1_file), 'w') as matrix1_standardization:
-        for document in matrix1:
+        for document in bundle.get_matrix1():
             for feature in document:
                 matrix1_standardization.write(str(feature) + " ")
             matrix1_standardization.write("\n")
@@ -248,7 +270,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     procrustes_matrix2_file = f"{current_date}T{current_time}Z_standardized_matrix_2_k_{k2}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix2_file), 'w') as matrix2_standardization:
-        for document in matrix2:
+        for document in bundle.get_matrix2():
             for feature in document:
                 matrix2_standardization.write(str(feature) + " ")
             matrix2_standardization.write("\n")
@@ -258,7 +280,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     disparity_filename = f"{current_date}T{current_time}Z_disparity.txt"
 
     with open(os.path.join(path, procrustes_folder, disparity_filename), 'w') as disparity_value:
-        disparity_value.write(str(disparity))
+        disparity_value.write(str(bundle.get_disparity()))
 
 
 def save_model(model, model_name, k, rows):
@@ -527,7 +549,7 @@ def preprocess_documents(document_collection):
     return dictionary, corpus
 
 
-def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
+def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, procrustes_bundle):
     r"""Modified Procrustes Analysis
 
     Parameters
@@ -536,6 +558,8 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
         The first array-like object to be fed into the Procrustes Analysis function.
     document_feature_matrix_2 : numpy array
         The second array-like object to be fed into the Procrustes Analysis function.
+    procrustes_bundle : ProcrustesBundle
+        A custom datatype that I made to encapsulate and simplify all of the Procrustes analysis data.
 
     Returns
     -------
@@ -562,7 +586,11 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
-    return matrix1, matrix2, disparity
+    procrustes_bundle.set_disparity(disparity)
+    procrustes_bundle.set_matrix1(matrix1)
+    procrustes_bundle.set_matrix2(matrix2)
+
+    return procrustes_bundle
 
 
 if __name__ == '__main__':
@@ -592,8 +620,6 @@ if __name__ == '__main__':
 
     number_of_documents = 50
     document_collection = select_reuters_documents(number_of_documents)
-
-    pprint(document_collection)
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
@@ -647,9 +673,12 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
 
+    # Declare ProcrustesBundles for data to be added to them.
+    bundle = ProcrustesBundle(model1_name='lsi', model2_name='lda')
+
     # Modified Procrustes Analysis
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k)
+    bundle = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, bundle)
+    save_procrustes_analyses_to_folder(bundle, lsi_k, lda_k)
 
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
