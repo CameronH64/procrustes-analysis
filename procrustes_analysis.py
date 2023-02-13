@@ -1,5 +1,4 @@
 # Author: Cameron Holbrook
-
 # =============== DESCRIPTION ===============
 # Purpose: Perform Procrustes analysis on document-feature matrices from two text analysis models.
 # General User Process:
@@ -25,32 +24,20 @@ from gensim.test.utils import get_tmpfile
 import numpy as np
 from datetime import datetime
 import os
+from dataclasses import dataclass
 # ========================= / IMPORTS =========================
 
 # This class is to group together different, but related data for Procrustes analysis.
-# This is so you'll much less loose variables in main or whatever coding space you use.
+# This is so you'll much fewer loose variables in main or whatever coding space you use.
 # Also, it helps with conceptualizing the data; in order to use any of these variables, you must
-# explicitly use that variable, and then use the respective getter.
+# explicitly use that variable, and then use the respective setters and getters.
+@dataclass
 class ProcrustesBundle:
-    def __init__(self, model1_name, model2_name, disparity=None, matrix1=None, matrix2=None):
-        self.disparity = disparity
-        self.matrix1 = matrix1
-        self.matrix2 = matrix2
-        self.model1_name = model1_name
-        self.model2_name = model2_name
-
-    def set_disparity(self, disparity):         self.disparity = disparity
-    def set_matrix1(self, matrix1):             self.matrix1 = matrix1
-    def set_matrix2(self, matrix2):             self.matrix2 = matrix2
-    def set_model1_name(self, model1_name):     self.model1_name = model1_name
-    def set_model2_name(self, model2_name):     self.model2_name = model2_name
-
-    def get_disparity(self):            return self.disparity
-    def get_matrix1(self):              return self.matrix1
-    def get_matrix2(self):              return self.matrix2
-    def get_model1_name(self):          return self.model1_name
-    def get_model2_name(self):          return self.model2_name
-
+    disparity: int
+    matrix1: None
+    matrix2: None
+    model1_name: str
+    model2_name: str
 
 
 def print_vectorized_corpus(vectorized_corpus, model_name):
@@ -252,7 +239,7 @@ def save_procrustes_analyses_to_folder(bundle, k1, k2):
     # 1. Make the procrustes folder.
     # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
     # "rows" is the number of documents. Also, for simplicity, this is derived from the length of one matrix, not as a function argument.
-    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(bundle.get_matrix1())}_k1_{k1}_k2_{k2}"
+    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(bundle.matrix1)}_k1_{k1}_k2_{k2}"
     os.mkdir(os.path.join(path, procrustes_folder))
 
 
@@ -260,7 +247,7 @@ def save_procrustes_analyses_to_folder(bundle, k1, k2):
     procrustes_matrix1_file = f"{current_date}T{current_time}Z_standardized_matrix_1_k_{k1}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix1_file), 'w') as matrix1_standardization:
-        for document in bundle.get_matrix1():
+        for document in bundle.matrix1:
             for feature in document:
                 matrix1_standardization.write(str(feature) + " ")
             matrix1_standardization.write("\n")
@@ -270,7 +257,7 @@ def save_procrustes_analyses_to_folder(bundle, k1, k2):
     procrustes_matrix2_file = f"{current_date}T{current_time}Z_standardized_matrix_2_k_{k2}.txt"
 
     with open(os.path.join(path, procrustes_folder, procrustes_matrix2_file), 'w') as matrix2_standardization:
-        for document in bundle.get_matrix2():
+        for document in bundle.matrix2:
             for feature in document:
                 matrix2_standardization.write(str(feature) + " ")
             matrix2_standardization.write("\n")
@@ -280,7 +267,7 @@ def save_procrustes_analyses_to_folder(bundle, k1, k2):
     disparity_filename = f"{current_date}T{current_time}Z_disparity.txt"
 
     with open(os.path.join(path, procrustes_folder, disparity_filename), 'w') as disparity_value:
-        disparity_value.write(str(bundle.get_disparity()))
+        disparity_value.write(str(bundle.disparity))
 
 
 def save_model(model, model_name, k, rows):
@@ -586,9 +573,9 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2, pr
 
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
-    procrustes_bundle.set_disparity(disparity)
-    procrustes_bundle.set_matrix1(matrix1)
-    procrustes_bundle.set_matrix2(matrix2)
+    procrustes_bundle.disparity = disparity
+    procrustes_bundle.matrix1 = matrix1
+    procrustes_bundle.matrix2 = matrix2
 
     return procrustes_bundle
 
@@ -674,10 +661,10 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
 
     # Declare ProcrustesBundles for data to be added to them.
-    bundle = ProcrustesBundle(model1_name='lsi', model2_name='lda')
+    bundle = ProcrustesBundle(disparity=0, matrix1=None, matrix2= None, model1_name='lsi', model2_name='lda')
 
     # Modified Procrustes Analysis
-    bundle = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, bundle)
+    modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix, bundle)
     save_procrustes_analyses_to_folder(bundle, lsi_k, lda_k)
 
     # Print analysis results to screen.
