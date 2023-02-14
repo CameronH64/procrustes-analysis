@@ -197,7 +197,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     current_date = date_now.strftime("%Y.%m.%d")
 
     time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S.%f")
+    current_time = time_now.strftime("%H.%M.%S")
 
     file_name = f"{current_date}T{current_time}Z_{model_type}_rows_{len(document_feature_matrix)}_k_{k}.txt"
 
@@ -234,7 +234,7 @@ def save_procrustes_analyses_to_folder(bundle, k1, k2):
     current_date = date_now.strftime("%Y.%m.%d")
 
     time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S.%f")
+    current_time = time_now.strftime("%H.%M.%S")
 
     # 1. Make the procrustes folder.
     # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
@@ -306,7 +306,7 @@ def save_model(model, model_name, k, rows):
 
     # Generate information needed for the folder that holds the saved model.
     current_date = datetime.today().strftime("%Y.%m.%d")
-    current_time = datetime.now().strftime("%H.%M.%S.%f")
+    current_time = datetime.now().strftime("%H.%M.%S")
 
     # Generate the name of the model being saved.
     model_folder = f"{current_date}T{current_time}Z_rows_{rows}_k_{k}"
