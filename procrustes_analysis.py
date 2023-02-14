@@ -184,7 +184,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     current_date = date_now.strftime("%Y.%m.%d")
 
     time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S")
+    current_time = time_now.strftime("%H.%M.%S.%f")
 
     file_name = f"{current_date}T{current_time}Z_{model_type}_rows_{len(document_feature_matrix)}_k_{k}.txt"
 
@@ -225,7 +225,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     current_date = date_now.strftime("%Y.%m.%d")
 
     time_now = datetime.now()
-    current_time = time_now.strftime("%H.%M.%S")
+    current_time = time_now.strftime("%H.%M.%S.%f")
 
     # 1. Make the procrustes folder.
     # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
@@ -297,7 +297,7 @@ def save_model(model, model_name, k, rows):
 
     # Generate information needed for the folder that holds the saved model.
     current_date = datetime.today().strftime("%Y.%m.%d")
-    current_time = datetime.now().strftime("%H.%M.%S")
+    current_time = datetime.now().strftime("%H.%M.%S.%f")
 
     # Generate the name of the model being saved.
     model_folder = f"{current_date}T{current_time}Z_rows_{rows}_k_{k}"
@@ -592,8 +592,6 @@ if __name__ == '__main__':
 
     number_of_documents = 50
     document_collection = select_reuters_documents(number_of_documents)
-
-    pprint(document_collection)
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
