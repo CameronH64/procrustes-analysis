@@ -29,7 +29,7 @@ from datetime import datetime
 import os
 # ========================= / IMPORTS =========================
 
-# ========================= PRINTING
+# ========================= PRINTING =========================
 def print_vectorized_corpus(vectorized_corpus, model_name):
     r"""Simplified Vectorized Corpus Print
 
@@ -116,7 +116,7 @@ def print_corpus_selection_settings(number_of_documents, number_of_topics):
     print('============================================')
     print()
 
-
+# ================ CREATING DOCUMENT FEATURE MATRICES ===============
 def create_latent_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
     r"""Create a Document-Feature Matrix from Latent Vectorization
 
@@ -165,7 +165,7 @@ def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_co
 
     return document_feature_matrix
 
-
+# ========================= SAVING =========================
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k):
     r"""Save Document-feature Matrix to File
 
@@ -325,62 +325,7 @@ def save_model(model, model_name, k, rows):
 
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
-
-def load_model(model_type, model_index=0):
-    r"""Load a Model from Files
-
-    Parameters
-    ----------
-    model_type : string
-        The string that sets the model path and type of model to be loaded.
-    model_index : integer
-        The integer that specifies which model to load, after the type is selected.
-
-    Returns
-    -------
-    model : gensim model
-    """
-
-    # Set the folder path for the models to be loaded.
-    model_path = fr'.\saved_models\{model_type}'
-
-    # Generate a list of models to be loaded. Ensure only folders are added to said list.
-    model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
-
-    if model_index < 0:
-        print("Negative model_index is not valid. model_index is reset to 0.")
-        model_index = 0
-    elif model_index > len(model_folders):
-        print("model_index value exceeds the possible models to load. model_index is reset to a value to load the most recent model.")
-        model_index = len(model_folders) - 1
-
-    model_timestamp = model_folders[model_index]
-    model_to_load = os.path.join(model_path, model_timestamp, model_timestamp+'.'+model_type)
-
-    if model_type == 'lsi':
-        return LsiModel.load(model_to_load)
-    elif model_type == 'lda':
-        return LdaModel.load(model_to_load)
-
-
-def vectorize_model(model, corpus):
-    r"""Vectorize a Model Using the Model and a Corpus
-
-    Parameters
-    ----------
-    model : gensim model
-        The gensim model to be vectorized.
-    corpus : list
-        List of words in corpus.
-
-    Returns
-    -------
-    model[corpus] : gensim.interfaces.TransformedCorpus
-    """
-
-    return model[corpus]
-
-
+# ========================= TRAINING =========================
 def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
     r"""Modified and Condensed Latent Semantic Indexing
 
@@ -438,15 +383,7 @@ def train_doc2vec(mdl_tokens, vector_size=10, alpha=0.1, epochs=100):
 
     return mdl
 
-
-def get_tagged_document(mdl_tokens):
-
-    corpus_file_ids = reuters.fileids()
-    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(mdl_tokens)]
-
-    return tagged_data
-
-
+# ========================= MISCELLANEOUS =========================
 def select_reuters_documents(number_of_documents):
     r"""Select Reuters Documents to Analyze
 
@@ -568,6 +505,24 @@ def preprocess_documents(document_collection):
     return dictionary, corpus
 
 
+def vectorize_latent_model(model, corpus):
+    r"""Vectorize a Model Using the Model and a Corpus
+
+    Parameters
+    ----------
+    model : gensim model
+        The gensim model to be vectorized.
+    corpus : list
+        List of words in corpus.
+
+    Returns
+    -------
+    model[corpus] : gensim.interfaces.TransformedCorpus
+    """
+
+    return model[corpus]
+
+
 def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     r"""Modified Procrustes Analysis
 
@@ -604,6 +559,51 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     matrix1, matrix2, disparity = procrustes(document_feature_matrix_1, document_feature_matrix_2)
 
     return matrix1, matrix2, disparity
+
+
+def get_tagged_document(mdl_tokens):
+
+    corpus_file_ids = reuters.fileids()
+    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(mdl_tokens)]
+
+    return tagged_data
+
+
+def load_model(model_type, model_index=0):
+    r"""Load a Model from Files
+
+    Parameters
+    ----------
+    model_type : string
+        The string that sets the model path and type of model to be loaded.
+    model_index : integer
+        The integer that specifies which model to load, after the type is selected.
+
+    Returns
+    -------
+    model : gensim model
+    """
+
+    # Set the folder path for the models to be loaded.
+    model_path = fr'.\saved_models\{model_type}'
+
+    # Generate a list of models to be loaded. Ensure only folders are added to said list.
+    model_folders = [f for f in os.listdir(model_path) if os.path.isdir(os.path.join(model_path, f))]
+
+    if model_index < 0:
+        print("Negative model_index is not valid. model_index is reset to 0.")
+        model_index = 0
+    elif model_index > len(model_folders):
+        print("model_index value exceeds the possible models to load. model_index is reset to a value to load the most recent model.")
+        model_index = len(model_folders) - 1
+
+    model_timestamp = model_folders[model_index]
+    model_to_load = os.path.join(model_path, model_timestamp, model_timestamp+'.'+model_type)
+
+    if model_type == 'lsi':
+        return LsiModel.load(model_to_load)
+    elif model_type == 'lda':
+        return LdaModel.load(model_to_load)
 
 
 if __name__ == '__main__':
@@ -653,7 +653,7 @@ if __name__ == '__main__':
 
     save_model(lsi_model, "lsi", lsi_k, number_of_documents)
     # lsi_model = load_model('lsi', model_index=0)
-    lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
+    lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
 
     # ================ / LSI ==================
@@ -671,7 +671,7 @@ if __name__ == '__main__':
 
     save_model(lda_model, "lda", lda_k, number_of_documents)
     # lda_model = load_model('lda', model_index=0)
-    lda_vectorized = vectorize_model(lda_model, generic_corpus)
+    lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
     print('LDA')
     print(lda_document_feature_matrix)
