@@ -13,7 +13,9 @@
 # ========================= IMPORTS =========================
 import nltk
 from pprint import pprint               # For neater printing of information
+
 from gensim.corpora import Dictionary
+from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 from nltk.corpus import reuters, stopwords         # Import the reuters dataset (from the download function), also stopwords.
 from scipy.spatial import procrustes
 from gensim.models import LsiModel, LdaModel
@@ -27,6 +29,7 @@ from datetime import datetime
 import os
 # ========================= / IMPORTS =========================
 
+# ========================= PRINTING
 def print_vectorized_corpus(vectorized_corpus, model_name):
     r"""Simplified Vectorized Corpus Print
 
@@ -114,8 +117,8 @@ def print_corpus_selection_settings(number_of_documents, number_of_topics):
     print()
 
 
-def create_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
-    r"""Convert a Vectorized Corpus to a Standard-sized Document-Feature Matrix
+def create_latent_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
+    r"""Create a Document-Feature Matrix from Latent Vectorization
 
     Parameters
     ----------
@@ -130,6 +133,11 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
     -------
     document_feature_matrix : numpy array
         The numpy array that is the document-feature array.
+
+    Description
+    -----------
+    This function must be used for both of the "latent" models, latent semantic indexing and
+    latent dirichlet allocation. This function works for both, since they are so similar.
     """
 
     document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
@@ -142,6 +150,18 @@ def create_document_feature_matrix(vectorization, number_of_documents, number_of
             document_feature_matrix[document][topic_placement] = topic_entry[1]
 
     # print('Document-Feature Matrix:', lsi_document_feature_matrix)
+
+    return document_feature_matrix
+
+
+def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection):
+
+    document_feature_matrix = np.zeros((len(document_collection), doc2vec_k))
+
+    for i, document in enumerate(document_collection):
+        temp_vector = doc2vec_model.infer_vector(document)
+        for j, entry in enumerate(temp_vector):      # Do something with the column value.
+            document_feature_matrix[i][j] = entry
 
     return document_feature_matrix
 
@@ -375,8 +395,8 @@ def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
 
     Returns
     -------
-    lsi_document_feature_matrix : numpy array
-        The "array-like" object needed for Procrustes analysis.
+    lsi_model : LsiModel
+        The LSI model that will be used to create a document-feature matrix from.
     """
 
     lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
@@ -397,13 +417,34 @@ def train_latent_dirichlet_allocation(dictionary, corpus, number_of_topics):
 
     Returns
     -------
-    lda_document_feature_matrix : numpy array
-        The "array-like" object needed for Procrustes analysis.
+    lda_model : LdaModel
+        The LDA model that will be used to create a document-feature matrix from.
     """
 
     lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
 
     return lda_model
+
+
+def train_doc2vec(mdl_tokens, vector_size=10, alpha=0.1, epochs=100):
+
+    mdl = Doc2Vec(vector_size=vector_size, window=2, min_count=2, epochs=epochs, alpha=alpha)
+    mdl.build_vocab(mdl_tokens)
+
+    # print('DOC2VEC Model Training: START')
+    mdl.train(mdl_tokens, total_examples=mdl.corpus_count, epochs=mdl.epochs)
+    # print('Epochs: {} \tTraining loss: {}'.format(mdl.epochs, mdl.get_latest_training_loss()))
+    # print('DOC2VEC Model Training: END')
+
+    return mdl
+
+
+def get_tagged_document(mdl_tokens):
+
+    corpus_file_ids = reuters.fileids()
+    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(mdl_tokens)]
+
+    return tagged_data
 
 
 def select_reuters_documents(number_of_documents):
@@ -590,7 +631,7 @@ if __name__ == '__main__':
     #  ['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
     #  ['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
 
-    number_of_documents = 50
+    number_of_documents = 20
     document_collection = select_reuters_documents(number_of_documents)
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
@@ -613,7 +654,7 @@ if __name__ == '__main__':
     save_model(lsi_model, "lsi", lsi_k, number_of_documents)
     # lsi_model = load_model('lsi', model_index=0)
     lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
-    lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
+    lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
 
     # ================ / LSI ==================
 
@@ -631,11 +672,28 @@ if __name__ == '__main__':
     save_model(lda_model, "lda", lda_k, number_of_documents)
     # lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_model(lda_model, generic_corpus)
-    lda_document_feature_matrix = create_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
-
+    lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
+    print('LDA')
+    print(lda_document_feature_matrix)
     # ================ / LDA ==================
 
 
+
+    # ================ DOC2VEC ================
+
+    # Setup for Doc2Vec
+    doc2vec_k = 10
+    d2v_tagged_tokens = get_tagged_document(document_collection)
+    d2v_model = train_doc2vec(d2v_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+
+    print_corpus_selection_settings(number_of_documents, doc2vec_k)
+
+    # Create Doc2Vec document-feature matrices.
+    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(d2v_model, doc2vec_k, document_collection)
+    print('Doc2Vec')
+    print(doc2vec_document_feature_matrix)
+
+    # ================ / DOC2VEC ================
 
     # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
