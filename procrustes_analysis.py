@@ -155,10 +155,27 @@ def create_latent_document_feature_matrix(vectorization, number_of_documents, nu
 
 
 def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection):
+    r"""Create a Document-Feature Matrix from Doc2Vec Model
+
+    Parameters
+    ----------
+    doc2vec_model : doc2vec model
+        The trained Doc2Vec model that will be used to make the document-feature matrix.
+    doc2vec_k : integer
+        The number of features for Doc2Vec to analyze.
+    document_collection : 2D list
+        The list of selected Reuters documents to use.
+
+    Returns
+    -------
+    document_feature_matrix : numpy array
+        The numpy array that is the document-feature array.
+    """
 
     document_feature_matrix = np.zeros((len(document_collection), doc2vec_k))
 
     for i, document in enumerate(document_collection):
+
         temp_vector = doc2vec_model.infer_vector(document)
         for j, entry in enumerate(temp_vector):      # Do something with the column value.
             document_feature_matrix[i][j] = entry
@@ -613,6 +630,8 @@ def load_model(model_type, model_index=0):
         return LsiModel.load(model_to_load)
     elif model_type == 'lda':
         return LdaModel.load(model_to_load)
+    elif model_type == 'doc2vec':
+        return Doc2Vec.load(model_to_load)
 
 
 if __name__ == '__main__':
@@ -692,10 +711,11 @@ if __name__ == '__main__':
 
     # Setup for Doc2Vec
     doc2vec_k = 10
-    doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
 
-    save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
+    # save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
+    doc2vec_model = load_model('doc2vec', model_index=0)
     print_corpus_selection_settings(number_of_documents, doc2vec_k)
 
     # Create Doc2Vec document-feature matrices.
