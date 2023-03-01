@@ -692,13 +692,14 @@ if __name__ == '__main__':
 
     # Setup for Doc2Vec
     doc2vec_k = 10
-    d2v_tagged_tokens = get_tagged_document(document_collection)
-    d2v_model = train_doc2vec(d2v_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
 
+    save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
     print_corpus_selection_settings(number_of_documents, doc2vec_k)
 
     # Create Doc2Vec document-feature matrices.
-    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(d2v_model, doc2vec_k, document_collection)
+    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
     print('Doc2Vec')
     print(doc2vec_document_feature_matrix)
 
