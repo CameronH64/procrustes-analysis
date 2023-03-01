@@ -165,6 +165,7 @@ def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_co
 
     return document_feature_matrix
 
+
 # ========================= SAVING =========================
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k):
     r"""Save Document-feature Matrix to File
@@ -326,8 +327,13 @@ def save_model(model, model_name, k, rows):
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
 # ========================= TRAINING =========================
-def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
-    r"""Modified and Condensed Latent Semantic Indexing
+def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
+    r"""Latent Model Training
+    Description
+    -----------
+    Having these two models in their separate functions is silly when they're each so simple
+    and take the same parameters. So, I combined them into one function. To train one model
+    or the other, input the correct model_type string.
 
     Parameters
     ----------
@@ -337,51 +343,54 @@ def train_latent_semantic_indexing(dictionary, corpus, number_of_topics):
         The number of topics to do LSI on.
     number_of_topics : integer
         Number of topics to train the LSI model on.
+    model_type : str
+        The string for the type of model. Can be either 'lsi' or 'lda', respectively.
 
     Returns
     -------
     lsi_model : LsiModel
         The LSI model that will be used to create a document-feature matrix from.
-    """
-
-    lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
-    return lsi_model
-
-
-def train_latent_dirichlet_allocation(dictionary, corpus, number_of_topics):
-    r"""Modified and Condensed Latent Dirichlet Allocation
-
-    Parameters
-    ----------
-    dictionary : 2D list
-        A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
-    corpus : 2D list
-        List of (x,y) points that denote the count of each word.
-    number_of_topics : integer
-        The number of topics to do LDA on.
-
-    Returns
-    -------
+    OR
     lda_model : LdaModel
         The LDA model that will be used to create a document-feature matrix from.
     """
+    if model_type == 'lsi':
+        lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
+        return lsi_model
 
-    lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
+    elif model_type == 'lda':
+        lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
+        return lda_model
 
-    return lda_model
 
+def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
+    r"""Doc2Vec Training
 
-def train_doc2vec(mdl_tokens, vector_size=10, alpha=0.1, epochs=100):
+    Parameters
+    ----------
+    model_tokens : list
+        The tokens of the document_collection.
+    vector_size : int
+        The size of vector to train doc2vec with. This will also be the output of each document vector.
+    alpha : float
+        Controls the learning rate during model training.
+    epochs : int
+        The number of passes to analyze the corpus.
+    Returns
+    -------
+    doc2vec_model : doc2vec model
+        The doc2vec model that will be used to create a document-feature matrix from.
+    """
 
-    mdl = Doc2Vec(vector_size=vector_size, window=2, min_count=2, epochs=epochs, alpha=alpha)
-    mdl.build_vocab(mdl_tokens)
+    doc2vec_model = Doc2Vec(vector_size=vector_size, window=2, min_count=2, epochs=epochs, alpha=alpha)
+    doc2vec_model.build_vocab(model_tokens)
 
     # print('DOC2VEC Model Training: START')
-    mdl.train(mdl_tokens, total_examples=mdl.corpus_count, epochs=mdl.epochs)
+    doc2vec_model.train(model_tokens, total_examples=doc2vec_model.corpus_count, epochs=doc2vec_model.epochs)
     # print('Epochs: {} \tTraining loss: {}'.format(mdl.epochs, mdl.get_latest_training_loss()))
     # print('DOC2VEC Model Training: END')
 
-    return mdl
+    return doc2vec_model
 
 # ========================= MISCELLANEOUS =========================
 def select_reuters_documents(number_of_documents):
@@ -649,7 +658,7 @@ if __name__ == '__main__':
     print_corpus_selection_settings(number_of_documents, lsi_k)
 
     # Create LSI document-feature matrices.
-    lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, lsi_k)
+    lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
 
     save_model(lsi_model, "lsi", lsi_k, number_of_documents)
     # lsi_model = load_model('lsi', model_index=0)
@@ -667,7 +676,7 @@ if __name__ == '__main__':
     print_corpus_selection_settings(number_of_documents, lda_k)
 
     # Create LDA document-feature matrices.
-    lda_model = train_latent_dirichlet_allocation(generic_dictionary, generic_corpus, lda_k)
+    lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
 
     save_model(lda_model, "lda", lda_k, number_of_documents)
     # lda_model = load_model('lda', model_index=0)
