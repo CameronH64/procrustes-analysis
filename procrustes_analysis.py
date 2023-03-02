@@ -711,10 +711,10 @@ if __name__ == '__main__':
 
     # Setup for Doc2Vec
     doc2vec_k = 10
-    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
 
-    # save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
+    save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
     doc2vec_model = load_model('doc2vec', model_index=0)
     print_corpus_selection_settings(number_of_documents, doc2vec_k)
 
@@ -732,6 +732,7 @@ if __name__ == '__main__':
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
     save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
+    save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
 
     # Modified Procrustes Analysis
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
