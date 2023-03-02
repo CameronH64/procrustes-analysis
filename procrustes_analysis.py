@@ -233,7 +233,7 @@ def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k)
     # May add a dynamic time appending feature the name above.
 
 
-def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
+def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2, model1_name, model2_name):
     r"""Save Procrustes Analyses Results to a Folder
 
     Parameters
@@ -248,6 +248,11 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
         The value for matrix 1's number of topics.
     k2 : integer
         The value for matrix 2's number of topics.
+    model1_name : str
+        The name of the first model to be used in the file name.
+    model2_name : str
+        The name of the second model to be used in the file name.
+
 
     Returns
     -------
@@ -268,7 +273,7 @@ def save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, k1, k2):
     # 1. Make the procrustes folder.
     # Note: k1 and k2 correspond to matrix 1 and matrix 2, respectively.
     # "rows" is the number of documents. Also, for simplicity, this is derived from the length of one matrix, not as a function argument.
-    procrustes_folder = f"{current_date}T{current_time}Z_rows_{len(matrix1)}_k1_{k1}_k2_{k2}"
+    procrustes_folder = f"{current_date}T{current_time}Z_{model1_name}_{model2_name}_rows_{len(matrix1)}_k1_{k1}_k2_{k2}"
     os.mkdir(os.path.join(path, procrustes_folder))
 
 
@@ -736,7 +741,7 @@ if __name__ == '__main__':
 
     # Modified Procrustes Analysis
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, doc2vec_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, doc2vec_k)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, doc2vec_k, 'lsi', 'doc2vec')
 
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
