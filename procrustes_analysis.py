@@ -735,8 +735,8 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
 
     # Modified Procrustes Analysis
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k)
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, doc2vec_document_feature_matrix)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, doc2vec_k)
 
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
