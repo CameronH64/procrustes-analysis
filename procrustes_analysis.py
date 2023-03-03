@@ -592,10 +592,10 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     return matrix1, matrix2, disparity
 
 
-def get_tagged_document(mdl_tokens):
+def get_tagged_document(model_tokens):
 
     corpus_file_ids = reuters.fileids()
-    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(mdl_tokens)]
+    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(model_tokens)]
 
     return tagged_data
 
@@ -684,7 +684,7 @@ if __name__ == '__main__':
     # Create LSI document-feature matrices.
     lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
 
-    save_model(lsi_model, "lsi", lsi_k, number_of_documents)
+    save_model(lsi_model, 'lsi', lsi_k, number_of_documents)
     # lsi_model = load_model('lsi', model_index=0)
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
@@ -702,7 +702,7 @@ if __name__ == '__main__':
     # Create LDA document-feature matrices.
     lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
 
-    save_model(lda_model, "lda", lda_k, number_of_documents)
+    save_model(lda_model, 'lda', lda_k, number_of_documents)
     # lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
@@ -719,7 +719,7 @@ if __name__ == '__main__':
     doc2vec_tagged_tokens = get_tagged_document(document_collection)
     doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
 
-    save_model(doc2vec_model, "doc2vec", doc2vec_k, number_of_documents)
+    save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
     doc2vec_model = load_model('doc2vec', model_index=0)
     print_corpus_selection_settings(number_of_documents, doc2vec_k)
 
@@ -729,6 +729,8 @@ if __name__ == '__main__':
     print(doc2vec_document_feature_matrix)
 
     # ================ / DOC2VEC ================
+
+
 
     # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
