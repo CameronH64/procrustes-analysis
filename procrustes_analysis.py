@@ -478,23 +478,12 @@ def preprocess_documents(document_collection):
     # Remove numbers, but not words that contain numbers.
     document_collection = [[token for token in document if not token.isnumeric()] for document in document_collection]
 
-    # Remove words that are only one character.
-    document_collection = [[token for token in document if len(token) > 1] for document in document_collection]
+    # Remove words that are only three characters.
+    document_collection = [[token for token in document if len(token) > 3] for document in document_collection]
 
-    # Lemmatize the documents.
+    # Lemmatize the documents (turn words like "banks" to "bank")
     lemmatizer = WordNetLemmatizer()
     document_collection = [[lemmatizer.lemmatize(token) for token in document] for document in document_collection]
-
-    # Add bigrams and trigrams to docs (only ones that appear 20 times or more).
-    bigram = Phrases(document_collection, min_count=20)
-
-    for idx in range(len(document_collection)):
-        for token in bigram[document_collection[idx]]:
-            if '_' in token:
-
-                # Token is a bigram, add to document.
-                document_collection[idx].append(token)
-                # print(token)
 
     ###############################################################################
     # We remove rare words and common words based on their *document frequency*.
@@ -502,6 +491,14 @@ def preprocess_documents(document_collection):
     # 50% of the documents. Consider trying to remove words only based on their
     # frequency, or maybe combining that with this approach.
     #
+
+    for value in document_collection:
+        print(value)
+
+    return document_collection
+
+
+def get_latent_dictionary_and_corpus(document_collection):
 
     # Create a dictionary representation of the documents.
     dictionary = Dictionary(document_collection)
@@ -669,8 +666,8 @@ if __name__ == '__main__':
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
-    generic_dictionary, generic_corpus = preprocess_documents(document_collection)
-
+    document_collection = preprocess_documents(document_collection)
+    generic_dictionary, generic_corpus = get_latent_dictionary_and_corpus(document_collection)
     # ================ SETUP ================
 
 
