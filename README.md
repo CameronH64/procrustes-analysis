@@ -4,23 +4,24 @@ This python file has a variety of functions for these purposes:
 - Model training on a corpus.
 - Outputting a document-feature matrix from a trained model.
 - Procrustes analysis between document-feature matrices.
-- Saving model to file for retrieval and analysis results replication.
-- Both document-feature matrices and Procrustes analysis results are outputted to a hierarchy (more on hierarchy later).
+- Saving model to file(s) for retrieval and analysis results replication.
+- Both document-feature matrices and Procrustes analysis results are outputted to an organized file structure (more on this hierarchy later).
 
-# Setting Up (For Adding this Code into an Already Established Project)
+# Setting Up (Adding this Code into an Already Existing Project)
 Although this is common Python knowledge, I'm including this section for the sake of clarity and completeness.
-After creating a project or having a project ready to use this module:
+After creating a project or having a project ready:
 #### Import the Procrustes Analysis File:
-1. Place the procrustes_analysis.py file into the same directory as the .py file that is the actual one being executed.
+1. Place the procrustes_analysis.py file into your project directory, alongside the .py file that is the actual one being executed.
 2. In the execution .py file (or notebook, if you're using that), import procrustes_analysis.py.
 
         import procrustes_analysis
 
     Note: To write more efficient code, you can use `import procrustes_analysis as pa` so you don't have to use the full filename to use the functions.
-3. You can now use any function from this module within your Python code by using `pa`.
+
+3. You can now use any function from this module within your Python code.
 
 #### Install Necessary Packages for this Module:
-Install the necessary packages through the requirements.txt file. When you place the requirements.txt file in the project folder, PyCharm *should* detect it, and give the option to install its packages.
+Install the necessary packages through the requirements.txt file. When you place the requirements.txt file in the project folder, PyCharm *should* detect it and give the option to install its packages.
 
 However, in the case that doesn't work, I'll cover the pip method (I use Git Bash, although this should work in most terminals).
 1. First, ensure that the requirements.txt file is in the project folder (it could be anywhere, but it's simpler to move it in this directory).
@@ -41,45 +42,88 @@ You may need to install the Reuters corpus. You can do that using this line of c
 
 You can remove this line of code without needing to use it again because it'll be downloaded for use from now on.
 
-# Phase Order
-- Even though you *can* use these functions in any order after importing, this phases order must be kept in mind to use this module effectively:
-    - Select the Reuters documents to analyze and preprocess them.
-    - Setup and train a model.
-    - Generate a document-feature matrix from that model.
-    - Do Procrustes analysis between two document-feature matrices.
+# Using the Functions
+Even though you *can* use these functions in any order after importing, these fundamental steps should be kept in mind to use them properly and effectively. For step 2, they are grouped into letters because each model works a bit differently. But the input and output is the same.
 
-# How to Use (Example Using LSI)
+- Setup
+- Training a model
+- Generating a document-feature matrix from that model
+- Doing Procrustes analysis between two document-feature matrices.
 
-#### (The three code snippets below must be done in this order):
-Setup for LSI:
-        
-        number_of_documents = 50`
-        document_collection = select_reuters_documents(number_of_documents)
+### 1. Setup (this is consistent for all models):
 
-Create LSI document-feature matrices:
+    number_of_documents = 50
+    document_collection = select_reuters_documents(number_of_documents)
+    document_collection = preprocess_documents(document_collection)
 
-        lsi_model = train_latent_semantic_indexing(generic_dictionary, generic_corpus, number_of_topics)
-        lsi_vectorized = vectorize_model(lsi_model, generic_corpus)
-        lsi_document_feature_matrix = create_document_feature_matrix(lsi_vectorized, number_of_documents, number_of_topics)
+### 2.a. LSI/LDA
+First, set a k value for the model training (number of features).
 
-Save document-feature matrices to a file:
+    lsi_k = 20
+    print_corpus_selection_settings(number_of_documents, lsi_k)
 
-        save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+Second, generate a generic dictionary and generic corpus for LSI/LDA (you only need to do this once).
 
-Save Procrustes Analysis to file:
+    generic_dictionary, generic_corpus = get_latent_dictionary_and_corpus(document_collection)
 
-        matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
-        save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
+Lastly, generate the document-feature matrices:
 
-#### (You must make sure there are saved models that you can load *before* you load them):
+    lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
+    lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
+    lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
+
+You now have the document-feature matrix that can be used for Procrustes Analysis.
+
+### 2.b. Doc2Vec
+First, set up Doc2Vec.
+
+    doc2vec_k = 10
+    doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    
+Then, train the model.
+
+    doc2vec_model = load_model('doc2vec', model_index=0)
+
+Create Doc2Vec document-feature matrices.
+
+    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
+
+### 4. Procrustes Analyasis: 
+
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
+
+## Optional Steps:
+These aren't optional in the sense that they're not important. They're just not necessarily required to do in any particular order, although they do require certain preconditions.
+
+### Save Procrustes Analysis to File (Optional):
+Precondition: Must have the values returned from the modified_procrustes() function.
+
+    save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
+
+### Save Document-Feature Matrix to File (Optional):
+Precondition: Must have a document-feature matrix generated from the model.
+
+    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+
+### Save Model to File:
+Precondition: Must have a trained model in order to save it to a file.
+(You must make sure there are saved models that you can load *before* you load them):
 When a model is created, this is how it can be saved to a file:
 
-        save_model(lda_model, 'lda')
+    save_model(lsi_model, 'lsi')
 
-When a model has been outputted to a file, this is how it can be loaded into Python:
-Note: Both the model string and timestamp are used to identify which model to load. The timestamp will need to be checked in the folder before you enter it as an argument.
+### Load Model from File:
+The model_index parameter is the position in the model directory, as an index. It must be zero or above. If below or above a valid model_index, the lower or upper bound value will be used.
 
-        lda_model = load_model('lda', '2023.02.04T13.27.37Z')
+    lsi_model = load_model('lsi', model_index=0)
+
+### Print Corpus Selection Settings:
+Precondition: None
+This is just for printing to the screen some Settings.
+
+    print_corpus_selection_settings(number_of_documents, doc2vec_k)
+
 
 # Output Folder Hierarchy
 These three folders contain all of the output from this module. The ellipses denote directories that will have more files generated when their respective functions are executed.
@@ -100,7 +144,7 @@ These three folders contain all of the output from this module. The ellipses den
 - saved_models
     - timestamp folder
         - timestamp.modelname
-        - Whatever other files the load method needs for the specific text analysis models.
+        - Whatever other files the load method needs for the specific text analysis models. The output and input for models varies, depending on 
     - ...
 
 # Miscellaneous
