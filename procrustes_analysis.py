@@ -95,11 +95,13 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
     print(str(disparity))
 
 
-def print_corpus_selection_settings(number_of_documents, number_of_topics):
+def print_corpus_selection_settings(model_name, number_of_documents, number_of_topics):
     r"""Text Analysis Settings Print
 
     Parameters
     ----------
+    model_name : str
+        The string for the name of the model settings being printed.
     number_of_documents : integer
         The number of documents analyzed to be printed.
     number_of_topics : integer
@@ -110,10 +112,11 @@ def print_corpus_selection_settings(number_of_documents, number_of_topics):
     None : N/A
     """
 
-    print('================= SETTINGS =================')
+    print(f'--------------- {model_name.upper()} SETTINGS ---------------')
     print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
     print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-    print('============================================')
+    for value in range(len(f'--------------- {model_name.upper()} SETTINGS ---------------')):
+        print('-', end='')
     print()
 
 # ================ CREATING DOCUMENT FEATURE MATRICES ===============
@@ -492,8 +495,9 @@ def preprocess_documents(document_collection):
     # frequency, or maybe combining that with this approach.
     #
 
-    for value in document_collection:
-        print(value)
+    # Debugging
+    # for value in document_collection:
+    #     print(value)
 
     return document_collection
 
@@ -676,7 +680,7 @@ if __name__ == '__main__':
 
     # Setup for LSI
     lsi_k = 20
-    print_corpus_selection_settings(number_of_documents, lsi_k)
+    print_corpus_selection_settings('lsi', number_of_documents, lsi_k)
 
     # Create LSI document-feature matrices.
     lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
@@ -694,7 +698,7 @@ if __name__ == '__main__':
 
     # Setup for LDA
     lda_k = 10
-    print_corpus_selection_settings(number_of_documents, lda_k)
+    print_corpus_selection_settings('lda', number_of_documents, lda_k)
 
     # Create LDA document-feature matrices.
     lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
@@ -703,7 +707,6 @@ if __name__ == '__main__':
     # lda_model = load_model('lda', model_index=0)
     lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
-    print('LDA')
     print(lda_document_feature_matrix)
     # ================ / LDA ==================
 
@@ -718,11 +721,10 @@ if __name__ == '__main__':
 
     save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
     doc2vec_model = load_model('doc2vec', model_index=0)
-    print_corpus_selection_settings(number_of_documents, doc2vec_k)
+    print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
 
     # Create Doc2Vec document-feature matrices.
     doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
-    print('Doc2Vec')
     print(doc2vec_document_feature_matrix)
 
     # ================ / DOC2VEC ================
