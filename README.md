@@ -1,4 +1,9 @@
 # Procrustes Analysis
+
+This python module (which is simply a .py file) is meant to be imported into a working project and its functions used as needed. The code under dunder name == dunder main is not meant to be used. Rather, it is simply testing code for developing the module. Therefore, it is advised to form your own experiments, and simply use these functions to accomplish that, instead of using this code as the be-all and end-all for these function's functionality.
+
+See, when the module is imported, the code within the module itself will run. This is not always ideal. Therefore, dunder name == dunder main removes this "auto-run" feature of sorts, while still allowing efficient development and testing. 
+
 This python file has a variety of functions for these purposes:
 - Preparation of a Reuters corpus.
 - Model training on a corpus.
@@ -6,6 +11,7 @@ This python file has a variety of functions for these purposes:
 - Procrustes analysis between document-feature matrices.
 - Saving model to file(s) for retrieval and analysis results replication.
 - Both document-feature matrices and Procrustes analysis results are outputted to an organized file structure (more on this hierarchy later).
+- Miscellaneous functions
 
 # Setting Up (Adding this Code into an Already Existing Project)
 Although this is common Python knowledge, I'm including this section for the sake of clarity and completeness.
