@@ -364,7 +364,7 @@ def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
     ----------
     dictionary : 2D list
         A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
-    corpus : integer
+    corpus : list
         The number of topics to do LSI on.
     number_of_topics : integer
         Number of topics to train the LSI model on.
@@ -379,6 +379,7 @@ def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
     lda_model : LdaModel
         The LDA model that will be used to create a document-feature matrix from.
     """
+
     if model_type == 'lsi':
         lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
         return lsi_model
@@ -689,7 +690,7 @@ if __name__ == '__main__':
     # lsi_model = load_model('lsi', model_index=0)
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
-
+    print(lsi_document_feature_matrix)
     # ================ / LSI ==================
 
 
