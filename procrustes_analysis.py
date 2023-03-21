@@ -26,6 +26,7 @@ from gensim.models import Phrases
 from gensim.test.utils import get_tmpfile
 import numpy as np
 from datetime import datetime
+from bertopic import BERTopic
 import os
 # ========================= / IMPORTS =========================
 
@@ -186,6 +187,13 @@ def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_co
     return document_feature_matrix
 
 
+def create_bert_document_feature_matrix(bert_model, document_collection):
+    document_collection = consolidate(document_collection)
+
+    topics, probs = bert_model.fit_transform(document_collection)
+
+    return np.array(probs)
+
 # ========================= SAVING =========================
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k):
     r"""Save Document-feature Matrix to File
@@ -312,7 +320,7 @@ def save_model(model, model_name, k, rows):
 
     Parameters
     ----------
-    model : gensim.models.lsimodel.LsiModel
+    model : gensim.model
         The string that determines what model is being saved.
     model_name : string
         The string that determines both where the model is saved and how the files are named.
@@ -417,6 +425,11 @@ def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
     # print('DOC2VEC Model Training: END')
 
     return doc2vec_model
+
+
+def train_bert(number_of_topics, min_topic_size=5, verbose=False):
+    return BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size, calculate_probabilities=True, verbose=verbose)
+
 
 # ========================= MISCELLANEOUS =========================
 def select_reuters_documents(number_of_documents):
@@ -641,6 +654,10 @@ def load_model(model_type, model_index=0):
         return Doc2Vec.load(model_to_load)
 
 
+def consolidate(docs):
+    return [' '.join(sublist) for sublist in docs]
+
+
 if __name__ == '__main__':
 
     # General User Process:
@@ -651,7 +668,7 @@ if __name__ == '__main__':
     # 5. Create a document feature matrix from the vectorized corpus and number of documents and topics. Returns a document feature matrix.
     # 6. Use modified Procrustes Analysis function on two document-feature matrices made with steps 1-5.
 
-    # ================ SETUP ================
+    # ---------------- SETUP ----------------
     # VERY IMPORTANT NOTE ABOUT document_collection VARIABLE:
     # document_collection MUST be a list such that:
     # - Each entry (row) in the list represents a document
@@ -666,18 +683,18 @@ if __name__ == '__main__':
     #  ['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
     #  ['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
 
-    number_of_documents = 20
+    number_of_documents = 2000
     document_collection = select_reuters_documents(number_of_documents)
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
     document_collection = preprocess_documents(document_collection)
     generic_dictionary, generic_corpus = get_latent_dictionary_and_corpus(document_collection)
-    # ================ SETUP ================
+    # ---------------- SETUP ----------------
 
 
 
-    # ================ LSI ==================
+    # ---------------- LSI ----------------
 
     # Setup for LSI
     lsi_k = 20
@@ -691,11 +708,11 @@ if __name__ == '__main__':
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
     print(lsi_document_feature_matrix)
-    # ================ / LSI ==================
+    # ---------------- / LSI ----------------
 
 
 
-    # ================ LDA ==================
+    # ---------------- LDA ----------------
 
     # Setup for LDA
     lda_k = 10
@@ -709,11 +726,11 @@ if __name__ == '__main__':
     lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
     lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
     print(lda_document_feature_matrix)
-    # ================ / LDA ==================
+    # ---------------- / LDA ----------------
 
 
 
-    # ================ DOC2VEC ================
+    # ---------------- DOC2VEC ----------------
 
     # Setup for Doc2Vec
     doc2vec_k = 10
@@ -728,9 +745,25 @@ if __name__ == '__main__':
     doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
     print(doc2vec_document_feature_matrix)
 
-    # ================ / DOC2VEC ================
+    # ---------------- / DOC2VEC ----------------
 
 
+
+    # ---------------- BERT ----------------
+
+    # Setup for Bert
+    bert_k = 10
+
+    bert_model = train_bert(bert_k)
+    save_model(bert_model, 'bert', bert_k, number_of_documents)
+
+    print_corpus_selection_settings('bert', number_of_documents, bert_k)
+
+    # Create BERT document-feature matrices.
+    bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
+    print(bert_document_feature_matrix)
+
+    # ---------------- / BERT ----------------
 
     # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
