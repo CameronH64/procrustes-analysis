@@ -95,44 +95,64 @@ Create Doc2Vec document-feature matrices.
 
     doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
 
-### 4. Procrustes Analyasis: 
+### 2.c. BERT
+
+First, set up BERT.
+
+    bert_k = 10
+    bert_model = train_bert(document_collection, bert_k, verbose=True)
+    
+Then, create its document feature matrix.
+
+    bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
+
+
+### 3. Procrustes Analyasis: 
 
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
 
 ## Optional Steps:
-These aren't optional in the sense that they're not important. They're just not necessarily required to do in any particular order, although they do require certain preconditions.
+These aren't optional in the sense that they're not important. Although each has its own preconditions, they don't need to be done in any particular order.
 
 ### Save Procrustes Analysis to File (Optional):
-Precondition: Must have the values returned from the modified_procrustes() function.
+Precondition:
+-Must have the matrix1, matrix2, and disparity values returned from the modified_procrustes() function.
 
     save_procrustes_analysis_to_file(matrix1, matrix2, disparity)
 
 ### Save Document-Feature Matrix to File (Optional):
-Precondition: Must have a document-feature matrix generated from the model.
+Preconditions:
+-Must have a document-feature matrix generated from the model.
+-The model name must match exactly what is in the source code. This is to save the document_feature matrix to the correct folder.
 
-    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi')
+    save_document_feature_matrix_to_file(document_feature_matrix, 'lowercase_model_name')
 
 ### Save Model to File:
-Precondition: Must have a trained model in order to save it to a file.
-(You must make sure there are saved models that you can load *before* you load them):
-When a model is created, this is how it can be saved to a file:
+Preconditions:
+-Must have a trained model in order to save it to a file.
+-When a model is created, this is how it can be saved to a file:
 
-    save_model(lsi_model, 'lsi')
+    save_model(model_object, 'lowercase_model_name')
 
 ### Load Model from File:
-The model_index parameter is the position in the model directory, as an index. It must be zero or above. If below or above a valid model_index, the lower or upper bound value will be used.
+Preconditions:
+-The model\_index parameter is the index position in the model directory, represented by an integer. It must be zero or above. If a given index value is too high or low, the upper and lower bounds will be used.
+-(You must make sure there are saved models that you can load *before* you load them):
 
-    lsi_model = load_model('lsi', model_index=0)
+    loaded_model = load_model('lowercase_model_name', model_index=integer_value)
 
 ### Print Corpus Selection Settings:
-Precondition: None
 This is just for printing to the screen some Settings.
+Preconditions:
+An integer variable for the number of documents.
+An integer variable for the k value of the model you're printing.
 
-    print_corpus_selection_settings(number_of_documents, doc2vec_k)
-
+    print_corpus_selection_settings(number_of_documents, model_name_k)
+    
 
 # Output Folder Hierarchy
 These three folders contain all of the output from this module. The ellipses denote directories that will have more files generated when their respective functions are executed.
+
 - document_feature_matrix_outputs
     - bert
     - doc2vec
