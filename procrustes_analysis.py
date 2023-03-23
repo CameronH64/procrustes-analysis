@@ -719,6 +719,7 @@ if __name__ == '__main__':
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
     print(lsi_document_feature_matrix)
+
     # ---------------- / LSI ----------------
 
 
@@ -768,7 +769,7 @@ if __name__ == '__main__':
     print_corpus_selection_settings('bert', number_of_documents, bert_k)
 
     bert_model = train_bert(document_collection, bert_k, verbose=True)
-    save_model(bert_model, 'bert', bert_k, number_of_documents)
+    # save_model(bert_model, 'bert', bert_k, number_of_documents)
 
     # bert_model = load_model('bert', model_index=0)
 
@@ -788,6 +789,7 @@ if __name__ == '__main__':
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
     # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
     # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
+    save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
 
     # Modified Procrustes Analysis
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, bert_document_feature_matrix)
