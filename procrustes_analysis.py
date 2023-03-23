@@ -188,9 +188,10 @@ def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_co
 
 
 def create_bert_document_feature_matrix(bert_model, document_collection):
+
     document_collection = consolidate(document_collection)
 
-    topics, probs = bert_model.fit_transform(document_collection)
+    topics, probs = bert_model.transform(document_collection)
 
     return np.array(probs)
 
@@ -427,9 +428,16 @@ def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
     return doc2vec_model
 
 
-def train_bert(number_of_topics, min_topic_size=5, verbose=False):
-    return BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size, calculate_probabilities=True, verbose=verbose)
+def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=False):
 
+    document_collection = consolidate(document_collection)
+
+    bert_model = BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size,
+                          calculate_probabilities=True, verbose=verbose)
+
+    bert_model.fit(document_collection)
+
+    return bert_model
 
 # ========================= MISCELLANEOUS =========================
 def select_reuters_documents(number_of_documents):
@@ -652,6 +660,8 @@ def load_model(model_type, model_index=0):
         return LdaModel.load(model_to_load)
     elif model_type == 'doc2vec':
         return Doc2Vec.load(model_to_load)
+    elif model_type == 'bert':
+        return BERTopic.load(model_to_load)
 
 
 def consolidate(docs):
@@ -690,6 +700,7 @@ if __name__ == '__main__':
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
     document_collection = preprocess_documents(document_collection)
     generic_dictionary, generic_corpus = get_latent_dictionary_and_corpus(document_collection)
+
     # ---------------- SETUP ----------------
 
 
@@ -714,18 +725,19 @@ if __name__ == '__main__':
 
     # ---------------- LDA ----------------
 
-    # Setup for LDA
-    lda_k = 10
-    print_corpus_selection_settings('lda', number_of_documents, lda_k)
+    # # Setup for LDA
+    # lda_k = 10
+    # print_corpus_selection_settings('lda', number_of_documents, lda_k)
+    #
+    # # Create LDA document-feature matrices.
+    # lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
+    #
+    # save_model(lda_model, 'lda', lda_k, number_of_documents)
+    # # lda_model = load_model('lda', model_index=0)
+    # lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
+    # lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
+    # print(lda_document_feature_matrix)
 
-    # Create LDA document-feature matrices.
-    lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
-
-    save_model(lda_model, 'lda', lda_k, number_of_documents)
-    # lda_model = load_model('lda', model_index=0)
-    lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
-    lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
-    print(lda_document_feature_matrix)
     # ---------------- / LDA ----------------
 
 
@@ -733,17 +745,17 @@ if __name__ == '__main__':
     # ---------------- DOC2VEC ----------------
 
     # Setup for Doc2Vec
-    doc2vec_k = 10
-    doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
-
-    save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
-    doc2vec_model = load_model('doc2vec', model_index=0)
-    print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
-
-    # Create Doc2Vec document-feature matrices.
-    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
-    print(doc2vec_document_feature_matrix)
+    # doc2vec_k = 10
+    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    #
+    # save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
+    # doc2vec_model = load_model('doc2vec', model_index=0)
+    # print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
+    #
+    # # Create Doc2Vec document-feature matrices.
+    # doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
+    # print(doc2vec_document_feature_matrix)
 
     # ---------------- / DOC2VEC ----------------
 
@@ -753,11 +765,12 @@ if __name__ == '__main__':
 
     # Setup for Bert
     bert_k = 10
+    print_corpus_selection_settings('bert', number_of_documents, bert_k)
 
-    bert_model = train_bert(bert_k)
+    bert_model = train_bert(document_collection, bert_k, verbose=True)
     save_model(bert_model, 'bert', bert_k, number_of_documents)
 
-    print_corpus_selection_settings('bert', number_of_documents, bert_k)
+    # bert_model = load_model('bert', model_index=0)
 
     # Create BERT document-feature matrices.
     bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
@@ -765,18 +778,20 @@ if __name__ == '__main__':
 
     # ---------------- / BERT ----------------
 
+
+
     # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
     # print_vectorized_corpus(lda_vectorized, 'LDA')
 
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
-    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
-    save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
+    # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
+    # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
 
     # Modified Procrustes Analysis
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, doc2vec_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, doc2vec_k, 'lsi', 'doc2vec')
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, bert_document_feature_matrix)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, bert_k, 'lsi', 'bert')
 
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
