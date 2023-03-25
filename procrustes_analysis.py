@@ -1,36 +1,38 @@
+# --------------------- DESCRIPTION ---------------------
 # Author: Cameron Holbrook
-
-# =============== DESCRIPTION ===============
 # Purpose: Perform Procrustes analysis on document-feature matrices from two text analysis models.
-# General User Process:
+# Very high level process:
+
 # 1. Define number of documents to analyze (this is the rows, N)
 # 2. Do text analysis on those documents, and get its respective matrix.
 # 3. Do procrustes analysis.
-# ===========================================
+# -------------------------------------------------------
 
 
 
-# ========================= IMPORTS =========================
-import nltk
-from pprint import pprint               # For neater printing of information
+# ----------------------- IMPORTS -----------------------
 
-from gensim.corpora import Dictionary
-from gensim.models.doc2vec import TaggedDocument, Doc2Vec
-from nltk.corpus import reuters, stopwords         # Import the reuters dataset (from the download function), also stopwords.
-from scipy.spatial import procrustes
-from gensim.models import LsiModel, LdaModel
-from gensim import corpora
-from nltk.tokenize import RegexpTokenizer
-from nltk.stem.wordnet import WordNetLemmatizer
-from gensim.models import Phrases
-from gensim.test.utils import get_tmpfile
-import numpy as np
-from datetime import datetime
-from bertopic import BERTopic
+# Basic imports
 import os
-# ========================= / IMPORTS =========================
+import nltk
+import numpy as np
+from pprint import pprint               # For neater printing of information
+from datetime import datetime
 
-# ========================= PRINTING =========================
+# Semantic model imports
+from bertopic import BERTopic
+from nltk.corpus import reuters         # For importing the Reuters dataset (nltk.download('reuters'))
+from scipy.spatial import procrustes
+from nltk.stem.wordnet import WordNetLemmatizer
+from gensim.corpora import Dictionary
+from gensim.models import LsiModel, LdaModel
+from gensim.models.doc2vec import TaggedDocument, Doc2Vec
+
+# ----------------------- / IMPORTS -----------------------
+
+
+
+# ----------------------- PRINTING -----------------------
 def print_vectorized_corpus(vectorized_corpus, model_name):
     r"""Simplified Vectorized Corpus Print
 
@@ -51,11 +53,11 @@ def print_vectorized_corpus(vectorized_corpus, model_name):
     This is only a debugging-type function for printing to the screen.
     """
 
-    print(f'================== {model_name} Vectorized Corpus ==================')
+    print(f'------------------- {model_name} Vectorized Corpus -------------------')
     for count, value in enumerate(vectorized_corpus):
         print(f'Document {count + 1}: ', end='')
         print(value)
-    print('===========================================================')
+    print('-----------------------------------------------------------')
 
 
 def print_modified_procrustes(matrix1, matrix2, disparity):
@@ -77,7 +79,7 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
 
     print()
 
-    print('===================== Matrix 1 =====================')
+    print('------------------- Matrix 1 -------------------')
 
     for count, document in enumerate(matrix1):
         print(f'Document: {count + 1}', document)
@@ -85,14 +87,14 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
 
     print()
 
-    print('===================== Matrix 2 =====================')
+    print('------------------- Matrix 2 -------------------')
     for count, document in enumerate(matrix2):
         print(f'Document {count + 1}:', document)
         print()
 
     print()
 
-    print('===================== Disparity =====================')
+    print('--------------------- Disparity ---------------------')
     print(str(disparity))
 
 
@@ -120,7 +122,7 @@ def print_corpus_selection_settings(model_name, number_of_documents, number_of_t
         print('-', end='')
     print()
 
-# ================ CREATING DOCUMENT FEATURE MATRICES ===============
+# ----------------------- CREATING DOCUMENT FEATURE MATRICES -----------------------
 def create_latent_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
     r"""Create a Document-Feature Matrix from Latent Vectorization
 
@@ -188,6 +190,20 @@ def create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_co
 
 
 def create_bert_document_feature_matrix(bert_model, document_collection):
+    r"""Create a Document-Feature Matrix from BERT Model
+
+    Parameters
+    ----------
+    bert_model : bert_model
+        The BERT model in which the document-feature matrix will be extracted from.
+    document_collection : 2D list
+        The selected Reuters documents that will be trained from.
+
+    Returns
+    -------
+    document_feature_matrix : numpy array
+        The numpy array that is the document-feature array.
+    """
 
     document_collection = consolidate(document_collection)
 
@@ -195,7 +211,7 @@ def create_bert_document_feature_matrix(bert_model, document_collection):
 
     return np.array(probs)
 
-# ========================= SAVING =========================
+# ----------------------- SAVING -----------------------
 def save_document_feature_matrix_to_file(document_feature_matrix, model_type, k):
     r"""Save Document-feature Matrix to File
 
@@ -360,9 +376,10 @@ def save_model(model, model_name, k, rows):
 
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
-# ========================= TRAINING =========================
+# ------------------------ TRAINING -----------------------
 def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
     r"""Latent Model Training
+
     Description
     -----------
     Having these two models in their separate functions is silly when they're each so simple
@@ -429,7 +446,27 @@ def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
 
 
 def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=False):
+    r"""BERT Training
 
+    Parameters
+    ----------
+    document_collection : 2D list
+        The selected Reuters documents.
+    number_of_topics : int
+        The number of topics to find.
+    min_topic_size : int
+        The minimum size of the topic. Increasing this value will lead to a lower number of clusters/topics.
+    verbose : bool
+        A boolean that determines if BERTopic training debugging will show.
+
+    Returns
+    -------
+    bert_model : bert model
+        The bert model that will be used to create a document-feature matrix from.
+    """
+
+    # Turns the 2D list of words into a 1D list of strings, constructed from all those words
+    # and separated with spaces.
     document_collection = consolidate(document_collection)
 
     bert_model = BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size,
@@ -439,7 +476,7 @@ def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=
 
     return bert_model
 
-# ========================= MISCELLANEOUS =========================
+# ----------------------- MISCELLANEOUS -----------------------
 def select_reuters_documents(number_of_documents):
     r"""Select Reuters Documents to Analyze
 
@@ -475,8 +512,8 @@ def preprocess_documents(document_collection):
 
     Returns
     -------
-    dictionary, corpus : tuple
-        The generated dictionary and corpus to be trained with.
+    document_collection : 2D list
+        The same document_collection, but cleaned for the latent semantic models.
     """
 
     # This function does these preprocessing steps (directly from Gensim LDA Model documentation):
@@ -525,6 +562,18 @@ def preprocess_documents(document_collection):
 
 
 def get_latent_dictionary_and_corpus(document_collection):
+    r"""Get the latent dictionary and corpus for LSI and LDA
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        A 2D list where each row is a document, and each element in each row is a word in said document.
+
+    Returns
+    -------
+    dictionary, corpus : tuple
+        The generated dictionary and corpus to be trained with.
+    """
 
     # Create a dictionary representation of the documents.
     dictionary = Dictionary(document_collection)
@@ -615,10 +664,22 @@ def modified_procrustes(document_feature_matrix_1, document_feature_matrix_2):
     return matrix1, matrix2, disparity
 
 
-def get_tagged_document(model_tokens):
+def get_tagged_document(document_collection):
+    r"""Get the Tagged Documents for Doc2Vec
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        A 2D list of the selected Reuters documents.
+
+    Returns
+    -------
+    tagged_data : list
+        A list of tagged data, the input for Doc2Vec.
+    """
 
     corpus_file_ids = reuters.fileids()
-    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(model_tokens)]
+    tagged_data = [TaggedDocument(d, [corpus_file_ids[i]]) for i, d in enumerate(document_collection)]
 
     return tagged_data
 
@@ -636,6 +697,7 @@ def load_model(model_type, model_index=0):
     Returns
     -------
     model : gensim model
+        The distributional semantic model to be loaded.
     """
 
     # Set the folder path for the models to be loaded.
@@ -664,21 +726,24 @@ def load_model(model_type, model_index=0):
         return BERTopic.load(model_to_load)
 
 
-def consolidate(docs):
-    return [' '.join(sublist) for sublist in docs]
+def consolidate(document_collection):
+    r"""Consolidate the 2D list of words into a 1D list of strings, each string being a document.
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        The selected Reuters documents to be consolidated.
+
+    Returns
+    -------
+    document_collection : 1D list
+    """
+
+    return [' '.join(sublist) for sublist in document_collection]
 
 
 if __name__ == '__main__':
 
-    # General User Process:
-    # 1. Define number of documents to analyze (this is the rows, N), and number of topics.
-    # 2. Preprocess documents; clean the text data. This returns a dictionary and a corpus.
-    # 3. Train a semantic model with this dictionary and corpus. This returns said semantic model.
-    # 4. Get a vectorization using this model and corpus. Returns a vectorized corpus.
-    # 5. Create a document feature matrix from the vectorized corpus and number of documents and topics. Returns a document feature matrix.
-    # 6. Use modified Procrustes Analysis function on two document-feature matrices made with steps 1-5.
-
-    # ---------------- SETUP ----------------
     # VERY IMPORTANT NOTE ABOUT document_collection VARIABLE:
     # document_collection MUST be a list such that:
     # - Each entry (row) in the list represents a document
@@ -693,15 +758,25 @@ if __name__ == '__main__':
     #  ['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
     #  ['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
 
+
+
+    # ---------------- ALL MODEL TRAINING SETUP ----------------
+
     number_of_documents = 2000
     document_collection = select_reuters_documents(number_of_documents)
+
+    # ---------------- / ALL MODEL TRAINING SETUP ----------------
+
+
+
+    # ---------------- LATENT MODEL SETUPS ----------------
 
     # generic_dictionary:   A dictionary with identifier numbers and words to match.
     # generic_corpus:       The corpus represented with a list of tuples, x being a word identifier and y being the count.
     document_collection = preprocess_documents(document_collection)
     generic_dictionary, generic_corpus = get_latent_dictionary_and_corpus(document_collection)
 
-    # ---------------- SETUP ----------------
+    # ---------------- / LATENT MODEL SETUPS ----------------
 
 
 
@@ -746,17 +821,17 @@ if __name__ == '__main__':
     # ---------------- DOC2VEC ----------------
 
     # Setup for Doc2Vec
-    # doc2vec_k = 10
-    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
-    #
-    # save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
-    # doc2vec_model = load_model('doc2vec', model_index=0)
-    # print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
-    #
-    # # Create Doc2Vec document-feature matrices.
-    # doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
-    # print(doc2vec_document_feature_matrix)
+    doc2vec_k = 10
+    doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+
+    save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
+    doc2vec_model = load_model('doc2vec', model_index=0)
+    print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
+
+    # Create Doc2Vec document-feature matrices.
+    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
+    print(doc2vec_document_feature_matrix)
 
     # ---------------- / DOC2VEC ----------------
 
@@ -780,16 +855,24 @@ if __name__ == '__main__':
     # ---------------- / BERT ----------------
 
 
-
     # Print vectorized corpora to screen.
     # print_vectorized_corpus(lsi_vectorized, 'LSI')
     # print_vectorized_corpus(lda_vectorized, 'LDA')
+
+
+    # ---------------- SAVE DOCUMENT-FEATURE MATRICES ----------------
 
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
     # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
     # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
     save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
+
+    # ---------------- / SAVE DOCUMENT-FEATURE MATRICES ----------------
+
+
+
+    # ------------------- PROCRUSTES ANALYSIS -------------------
 
     # Modified Procrustes Analysis
     matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, bert_document_feature_matrix)
@@ -798,3 +881,4 @@ if __name__ == '__main__':
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
 
+    # ------------------- / PROCRUSTES ANALYSIS -------------------
