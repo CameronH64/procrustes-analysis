@@ -27,26 +27,31 @@ After creating a project or having a project ready:
 3. You can now use any function from this module within your Python code.
 
 #### Install Necessary Packages for this Module:
-Install the necessary packages through the requirements.txt file. When you place the requirements.txt file in the project folder, PyCharm *should* detect it and give the option to install its packages.
+Install the necessary packages using the requirements.txt file. When you place the requirements.txt file in the project folder, PyCharm will detect it and give the option to install its packages. Wait a few minutes for all the packages to download and PyCharm to index them.
 
-However, in the case that doesn't work, I'll cover the pip method (I use Git Bash, although this should work in most terminals).
+However, in the low chance that doesn't work or you accidentally dismiss the notification, you can do this manually by using Git Bash.
+
 1. First, ensure that the requirements.txt file is in the project folder (it could be anywhere, but it's simpler to move it in this directory).
 2. Then, activate your virtual environment (although you can make these manually, PyCharm can and should automatically create and configure these for you to use.)
 
         source venv/Scripts/activate
 
 3. With your virtual environment activated, install the necessary packages from the requirements file.
-        
+
         pip install -r requirements.txt
 
-When you run the code, the module should work normally.
+Again, wait a few minutes for all the packages to download and PyCharm to index them.
 
 #### A Quick Note on the Reuters Corpus
 You may need to install the Reuters corpus. You can do that using this line of code:
 
-        nltk.download('reuters')
+    nltk.download('reuters')
 
-You can remove this line of code without needing to use it again because it'll be downloaded for use from now on.
+This corpus will be downloaded somewhere else your computer. You can remove this line of code without needing to use it again because it'll be downloaded for use from now on.
+
+Just for reference, the Reuters corpus is downloaded to this location:
+
+    C:\Users\Username\AppData\Roaming\nltk_data\corpora
 
 # Using the Functions
 Even though you *can* use these functions in any order after importing, these fundamental steps should be kept in mind to use them properly and effectively. For step 2, they are grouped into letters because each model works a bit differently. But the input and output is the same.
@@ -57,10 +62,10 @@ Even though you *can* use these functions in any order after importing, these fu
 - Doing Procrustes analysis between two document-feature matrices.
 
 ### 1. Setup (this is consistent for all models):
+Determine the number of documents for each model to analyze (these are the rows in the document-feature matrices)
 
     number_of_documents = 50
     document_collection = select_reuters_documents(number_of_documents)
-    document_collection = preprocess_documents(document_collection)
 
 ### 2.a. LSI/LDA
 First, set a k value for the model training (number of features).
