@@ -477,13 +477,13 @@ def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=
     return bert_model
 
 # ----------------------- MISCELLANEOUS -----------------------
-def select_reuters_documents(number_of_documents):
-    r"""Select Reuters Documents to Analyze
+def select_reuters_training_documents(number_of_documents):
+    r"""Select Reuters Training Documents to Analyze
 
     Parameters
     ----------
     number_of_documents : integer
-        Defines the number of Reuters documents to analyze (starting from the first document).
+        Defines the number of Reuters training documents to return.
 
     Returns
     -------
@@ -491,13 +491,52 @@ def select_reuters_documents(number_of_documents):
         Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
     """
 
-    # There are 3,020 test documents, and 7,768 training documents.
+    # There are 3,019 test documents, and 7,769 training documents.
 
     training_documents = reuters.fileids()[3019:]       # Retrieve only Reuters training documents.
     selected_reuters_documents = []
 
+    # Restrict the number of documents to a certain range.
+    if number_of_documents > 7769:
+        number_of_documents = 7769
+    elif number_of_documents < 1:
+        number_of_documents = 1
+
+    # Cycle through the training documents, and append as many as specified.
     for file_id in range(0, number_of_documents):
         selected_reuters_documents.append(reuters.words(training_documents[file_id]))
+
+    return selected_reuters_documents
+
+
+def select_reuters_testing_documents(number_of_documents):
+    r"""Select Reuters Testing Documents to Analyze
+
+    Parameters
+    ----------
+    number_of_documents : integer
+        Defines the number of Reuters testing documents to return.
+
+    Returns
+    -------
+    reuters_documents : 2D list
+        Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
+    """
+
+    # There are 3,019 test documents, and 7,769 training documents.
+
+    testing_documents = reuters.fileids()[:3020]       # Retrieve only Reuters training documents.
+    selected_reuters_documents = []
+
+    # Restrict the number of documents to a certain range.
+    if number_of_documents > 3019:
+        number_of_documents = 3019
+    elif number_of_documents < 1:
+        number_of_documents = 1
+
+    # Cycle through the training documents, and append as many as specified.
+    for file_id in range(0, number_of_documents):
+        selected_reuters_documents.append(reuters.words(testing_documents[file_id]))
 
     return selected_reuters_documents
 
@@ -762,8 +801,8 @@ if __name__ == '__main__':
 
     # ---------------- ALL MODEL TRAINING SETUP ----------------
 
-    number_of_documents = 2000
-    document_collection = select_reuters_documents(number_of_documents)
+    number_of_documents = 3021
+    document_collection = select_reuters_testing_documents(number_of_documents)
 
     # ---------------- / ALL MODEL TRAINING SETUP ----------------
 
