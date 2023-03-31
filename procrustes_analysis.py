@@ -488,22 +488,16 @@ def select_reuters_training_documents(number_of_documents):
     Returns
     -------
     reuters_documents : 2D list
-        Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
+        Contains all the selected documents, where each row is a document, and each entry in each row is a word.
     """
 
     # There are 3,019 test documents, and 7,769 training documents.
 
-    training_documents = reuters.fileids()[3019:]       # Retrieve only Reuters training documents.
+    training_documents = reuters.fileids()[3020:]       # Retrieve only Reuters training documents.
     selected_reuters_documents = []
 
-    # Restrict the number of documents to a certain range.
-    if number_of_documents > 7769:
-        number_of_documents = 7769
-    elif number_of_documents < 1:
-        number_of_documents = 1
-
     # Cycle through the training documents, and append as many as specified.
-    for file_id in range(0, number_of_documents):
+    for file_id in range(0, number_of_documents):     # +1 to include the last document.
         selected_reuters_documents.append(reuters.words(training_documents[file_id]))
 
     return selected_reuters_documents
@@ -520,7 +514,7 @@ def select_reuters_testing_documents(number_of_documents):
     Returns
     -------
     reuters_documents : 2D list
-        Contains a complete Reuters document, where each row is a document, and each entry in each row is a word.
+        Contains all the selected documents, where each row is a document, and each entry in each row is a word.
     """
 
     # There are 3,019 test documents, and 7,769 training documents.
@@ -528,14 +522,8 @@ def select_reuters_testing_documents(number_of_documents):
     testing_documents = reuters.fileids()[:3020]       # Retrieve only Reuters training documents.
     selected_reuters_documents = []
 
-    # Restrict the number of documents to a certain range.
-    if number_of_documents > 3019:
-        number_of_documents = 3019
-    elif number_of_documents < 1:
-        number_of_documents = 1
-
     # Cycle through the training documents, and append as many as specified.
-    for file_id in range(0, number_of_documents):
+    for file_id in range(0, number_of_documents):     # +1 to include the last document.
         selected_reuters_documents.append(reuters.words(testing_documents[file_id]))
 
     return selected_reuters_documents
@@ -801,8 +789,8 @@ if __name__ == '__main__':
 
     # ---------------- ALL MODEL TRAINING SETUP ----------------
 
-    number_of_documents = 3021
-    document_collection = select_reuters_testing_documents(number_of_documents)
+    number_of_documents = 7768
+    document_collection = select_reuters_training_documents(number_of_documents)
 
     # ---------------- / ALL MODEL TRAINING SETUP ----------------
 
@@ -824,15 +812,16 @@ if __name__ == '__main__':
     # Setup for LSI
     lsi_k = 20
     print_corpus_selection_settings('lsi', number_of_documents, lsi_k)
+    # lsi_model = load_model('lsi', model_index=0)
 
     # Create LSI document-feature matrices.
     lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
-
     save_model(lsi_model, 'lsi', lsi_k, number_of_documents)
-    # lsi_model = load_model('lsi', model_index=0)
+
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
     lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
-    print(lsi_document_feature_matrix)
+
+    # print(lsi_document_feature_matrix)        # Debugging
 
     # ---------------- / LSI ----------------
 
@@ -841,17 +830,18 @@ if __name__ == '__main__':
     # ---------------- LDA ----------------
 
     # # Setup for LDA
-    # lda_k = 10
-    # print_corpus_selection_settings('lda', number_of_documents, lda_k)
-    #
-    # # Create LDA document-feature matrices.
-    # lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
-    #
-    # save_model(lda_model, 'lda', lda_k, number_of_documents)
-    # # lda_model = load_model('lda', model_index=0)
-    # lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
-    # lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
-    # print(lda_document_feature_matrix)
+    lda_k = 10
+    print_corpus_selection_settings('lda', number_of_documents, lda_k)
+
+    # Create LDA document-feature matrix.
+    # lda_model = load_model('lda', model_index=0)
+    lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
+    save_model(lda_model, 'lda', lda_k, number_of_documents)
+
+    lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
+    lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
+
+    # print(lda_document_feature_matrix)        # Debugging
 
     # ---------------- / LDA ----------------
 
@@ -860,17 +850,19 @@ if __name__ == '__main__':
     # ---------------- DOC2VEC ----------------
 
     # Setup for Doc2Vec
-    doc2vec_k = 10
-    doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    # doc2vec_k = 10
+    # print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
+    #
+    # # Create Doc2Vec model.
+    # # doc2vec_model = load_model('doc2vec', model_index=0)
+    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+    # save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
+    #
+    # # Create Doc2Vec document-feature matrix.
+    # doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
 
-    save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
-    doc2vec_model = load_model('doc2vec', model_index=0)
-    print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
-
-    # Create Doc2Vec document-feature matrices.
-    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
-    print(doc2vec_document_feature_matrix)
+    # print(doc2vec_document_feature_matrix)      # Debugging
 
     # ---------------- / DOC2VEC ----------------
 
@@ -879,17 +871,17 @@ if __name__ == '__main__':
     # ---------------- BERT ----------------
 
     # Setup for Bert
-    bert_k = 10
-    print_corpus_selection_settings('bert', number_of_documents, bert_k)
-
-    bert_model = train_bert(document_collection, bert_k, verbose=True)
-    # save_model(bert_model, 'bert', bert_k, number_of_documents)
-
-    # bert_model = load_model('bert', model_index=0)
-
-    # Create BERT document-feature matrices.
-    bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
-    print(bert_document_feature_matrix)
+    # bert_k = 10
+    # print_corpus_selection_settings('bert', number_of_documents, bert_k)
+    #
+    # bert_model = train_bert(document_collection, bert_k, verbose=True)
+    # # save_model(bert_model, 'bert', bert_k, number_of_documents)
+    #
+    # # bert_model = load_model('bert', model_index=0)
+    #
+    # # Create BERT document-feature matrices.
+    # bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
+    # print(bert_document_feature_matrix)
 
     # ---------------- / BERT ----------------
 
@@ -903,9 +895,9 @@ if __name__ == '__main__':
 
     # Save document-feature matrices to a file.
     save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
-    # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
+    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
     # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
-    save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
+    # save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
 
     # ---------------- / SAVE DOCUMENT-FEATURE MATRICES ----------------
 
@@ -914,8 +906,8 @@ if __name__ == '__main__':
     # ------------------- PROCRUSTES ANALYSIS -------------------
 
     # Modified Procrustes Analysis
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, bert_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, bert_k, 'lsi', 'bert')
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k, 'lsi', 'lda')
 
     # Print analysis results to screen.
     # print_modified_procrustes(matrix1, matrix2, disparity)
