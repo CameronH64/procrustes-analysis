@@ -2,7 +2,7 @@
 
 This python module is simply a bunch of functions that can be used for data science purposes. The module can be imported into a Python project quite fast and easily. It is advised to form your own experiments, and simply use these functions to accomplish that. The code under \_\_name\_\_ == \_\_main\_\_ is not meant to be used. Rather, it is simply my testing code for developing the module. It can also be taken as examples of how to use the functions. It's just not the be-all, end-all for how the module's functions should be used.
 
-See, when the module is imported, the entire code within the module itself will run. This is not always ideal. Therefore, __name__ == __main__ removes this "auto-run" feature of sorts, which allows for using the functions directly.
+See, when the module is imported, the entire code within the module itself will run. This is not always ideal. Therefore, \_\_name\_\_ == \_\_main\_\_ removes this "auto-run" feature of sorts, which allows for using the functions directly.
 
 This Python file has a variety of functions for these purposes:
 - Preparation of a Reuters corpus.
@@ -181,3 +181,17 @@ These three folders contain all of the output from this module. The ellipses den
 # Miscellaneous
 
 - Python has a help() function that you can use. You can put in any function name from procrustes_analysis, and it'll print out the docstring. This is more useful in something like JupyterLab because you can directly read the docstrings in the code, but it's a feature nonetheless.
+
+- A note about the document_collection variable:
+
+document_collection MUST be a list such that:
+-Each entry (row) in the list represents a document.
+-Each entry in each row is a string for each word.
+-Some examples on the internet show each corpus with many long strings representing a document, but the reuters corpus skips this step and separates them into words automaticaly.
+
+Example:
+[['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],
+['COMPUTER', 'TERMINAL', 'SYSTEMS', '&', 'lt', ';', ...],
+['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
+['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
+
