@@ -493,7 +493,10 @@ def select_reuters_training_documents(number_of_documents):
 
     # There are 3,019 test documents, and 7,769 training documents.
 
-    training_documents = reuters.fileids()[3020:]       # Retrieve only Reuters training documents.
+    if number_of_documents > 7769: number_of_documents = 7769
+    elif number_of_documents < 0: number_of_documents = 0
+
+    training_documents = reuters.fileids()[3019:]       # Retrieve only Reuters training documents. (0 to 3018 equals 3019 total) So, retrieve everything after that.
     selected_reuters_documents = []
 
     # Cycle through the training documents, and append as many as specified.
@@ -519,11 +522,14 @@ def select_reuters_testing_documents(number_of_documents):
 
     # There are 3,019 test documents, and 7,769 training documents.
 
-    testing_documents = reuters.fileids()[:3020]       # Retrieve only Reuters training documents.
+    if number_of_documents > 3019: number_of_documents = 3019
+    elif number_of_documents < 0: number_of_documents = 0
+
+    testing_documents = reuters.fileids()[:3019]       # Retrieve only Reuters training documents (0 to 3019, non-inclusive equals 3018 total documents).
     selected_reuters_documents = []
 
     # Cycle through the training documents, and append as many as specified.
-    for file_id in range(0, number_of_documents):     # +1 to include the last document.
+    for file_id in range(0, number_of_documents):
         selected_reuters_documents.append(reuters.words(testing_documents[file_id]))
 
     return selected_reuters_documents
@@ -771,25 +777,9 @@ def consolidate(document_collection):
 
 if __name__ == '__main__':
 
-    # VERY IMPORTANT NOTE ABOUT document_collection VARIABLE:
-    # document_collection MUST be a list such that:
-    # - Each entry (row) in the list represents a document
-    # - Each entry in each row is a string for each word.
-    # Some examples on the internet show each document as one long string, but the reuters
-    # corpus is actually helping out by separating it into distinct words first. This format is
-    # required for the models to do their analysis.
-
-    # Example:
-    # [['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],
-    #  ['COMPUTER', 'TERMINAL', 'SYSTEMS', '&', 'lt', ';', ...],
-    #  ['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
-    #  ['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
-
-
-
     # ---------------- ALL MODEL TRAINING SETUP ----------------
 
-    number_of_documents = 7768
+    number_of_documents = 7769
     document_collection = select_reuters_training_documents(number_of_documents)
 
     # ---------------- / ALL MODEL TRAINING SETUP ----------------
