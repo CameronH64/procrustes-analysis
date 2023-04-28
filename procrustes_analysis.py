@@ -448,7 +448,7 @@ def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
 
 
 def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=False):
-    r"""BERT Training
+    r"""BERT Training using BERTopic
 
     Parameters
     ----------
@@ -467,13 +467,14 @@ def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=
         The bert model that will be used to create a document-feature matrix from.
     """
 
-    # Turns the 2D list of words into a 1D list of strings, constructed from all those words
-    # and separated with spaces.
+    # Turns the 2D list of words into a 1D list of strings, constructed from all those words and separated with spaces.
     document_collection = consolidate(document_collection)
 
+    # Build the BERT model.
     bert_model = BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size,
                           calculate_probabilities=True, verbose=verbose)
 
+    # Fine-tune the BERT model with the Reuters corpus.
     bert_model.fit(document_collection)
 
     return bert_model
@@ -845,19 +846,19 @@ if __name__ == '__main__':
     # ---------------- DOC2VEC ----------------
 
     # Setup for Doc2Vec
-    # doc2vec_k = 10
-    # print_corpus_selection_settings('doc2vec', number_of_documents, doc2vec_k)
-    #
-    # # Create Doc2Vec model.
-    # # doc2vec_model = load_model('doc2vec', model_index=0)
-    # doc2vec_tagged_tokens = get_tagged_document(document_collection)
-    # doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
-    # save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_documents)
-    #
-    # # Create Doc2Vec document-feature matrix.
-    # doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
+    doc2vec_k = 20
+    print_corpus_selection_settings('doc2vec', number_of_training_documents, doc2vec_k)
 
-    # print(doc2vec_document_feature_matrix)      # Debugging
+    # Generate a Doc2Vec model. (either load existing model or train one from data)
+    # doc2vec_model = load_model('doc2vec', model_index=0)
+    doc2vec_tagged_tokens = get_tagged_document(document_collection)
+    doc2vec_model = train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
+
+    # Optional: Save the Doc2Vec model
+    save_model(doc2vec_model, 'doc2vec', doc2vec_k, number_of_training_documents)
+
+    # Create Doc2Vec document-feature matrix.
+    doc2vec_document_feature_matrix = create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
 
     # ---------------- / DOC2VEC ----------------
 
@@ -865,46 +866,42 @@ if __name__ == '__main__':
 
     # ---------------- BERT ----------------
 
-    # Setup for Bert
-    # bert_k = 10
-    # print_corpus_selection_settings('bert', number_of_documents, bert_k)
-    #
-    # bert_model = train_bert(document_collection, bert_k, verbose=True)
-    # # save_model(bert_model, 'bert', bert_k, number_of_documents)
-    #
-    # # bert_model = load_model('bert', model_index=0)
-    #
-    # # Create BERT document-feature matrices.
-    # bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
-    # print(bert_document_feature_matrix)
+    # Setup for BERT
+    bert_k = 20
+    print_corpus_selection_settings('bert', number_of_training_documents, bert_k)
+
+    # Generate an LSI model. (either load existing model or train one from data)
+    # bert_model = load_model('bert', model_index=0)
+    bert_model = train_bert(document_collection, bert_k, verbose=True)
+
+    # Optional: Save the BERT model.
+    save_model(bert_model, 'bert', bert_k, number_of_training_documents)
+
+    # Create BERT document-feature matrices.
+    bert_document_feature_matrix = create_bert_document_feature_matrix(bert_model, document_collection)
 
     # ---------------- / BERT ----------------
 
 
-    # Print vectorized corpora to screen.
-    # print_vectorized_corpus(lsi_vectorized, 'LSI')
-    # print_vectorized_corpus(lda_vectorized, 'LDA')
+
+    # ---------------- SAVE DOCUMENT-FEATURE MATRICES TO FILE ----------------
+
+    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
+    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
+    save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
+    save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
+
+    # ---------------- / SAVE DOCUMENT-FEATURE MATRICES TO FILES ----------------
 
 
-    # ---------------- SAVE DOCUMENT-FEATURE MATRICES ----------------
 
-    # Save document-feature matrices to a file.
-    # save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
-    # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
-    # # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
-    # # save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
-    #
-    # # ---------------- / SAVE DOCUMENT-FEATURE MATRICES ----------------
-    #
-    #
-    #
-    # # ------------------- PROCRUSTES ANALYSIS -------------------
-    #
-    # # Modified Procrustes Analysis
-    # matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    # save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k, 'lsi', 'lda')
-    #
-    # # Print analysis results to screen.
-    # # print_modified_procrustes(matrix1, matrix2, disparity)
-    #
-    # # ------------------- / PROCRUSTES ANALYSIS -------------------
+    # ------------------- PROCRUSTES ANALYSIS -------------------
+
+    # Takes in two document-feature matrices. Will output standardized matrices and disparity value.
+    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
+    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k, 'lsi', 'lda')
+
+    # Print analysis results to screen.
+    print_modified_procrustes(matrix1, matrix2, disparity)
+
+    # ------------------- / PROCRUSTES ANALYSIS -------------------
