@@ -98,12 +98,12 @@ def print_modified_procrustes(matrix1, matrix2, disparity):
     print(str(disparity))
 
 
-def print_corpus_selection_settings(model_name, number_of_documents, number_of_topics):
+def print_corpus_selection_settings(model_string, number_of_documents, number_of_topics):
     r"""Text Analysis Settings Print
 
     Parameters
     ----------
-    model_name : str
+    model_string : str
         The string for the name of the model settings being printed.
     number_of_documents : integer
         The number of documents analyzed to be printed.
@@ -115,10 +115,10 @@ def print_corpus_selection_settings(model_name, number_of_documents, number_of_t
     None : N/A
     """
 
-    print(f'--------------- {model_name.upper()} SETTINGS ---------------')
+    print(f'--------------- {model_string.upper()} SETTINGS ---------------')
     print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
     print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-    for value in range(len(f'--------------- {model_name.upper()} SETTINGS ---------------')):
+    for value in range(len(f'--------------- {model_string.upper()} SETTINGS ---------------')):
         print('-', end='')
     print()
 
@@ -129,7 +129,7 @@ def create_latent_document_feature_matrix(vectorization, number_of_documents, nu
     Parameters
     ----------
     vectorization : gensim object
-        The distributional semantic model's vectorized corpus.
+        The latent model's vectorized corpus.
     number_of_documents : integer
         The number of documents that determines the rows to append and fill.
     number_of_topics : integer
@@ -146,16 +146,18 @@ def create_latent_document_feature_matrix(vectorization, number_of_documents, nu
     latent dirichlet allocation. This function works for both, since they are so similar.
     """
 
-    document_feature_matrix = np.zeros((number_of_documents, number_of_topics))
+    document_feature_matrix = np.zeros((number_of_documents, number_of_topics))         # Initialize an empty document-feature matrix to be populated.
 
-    for document in range(len(vectorization)):
+    for document in range(len(vectorization)):              # For the length of the number of documents,
 
-        for topic_entry in vectorization[document]:      # Do something with the column value.
+        for topic_entry in vectorization[document]:         # For each topic found, place it in the document-feature matrix.
 
             topic_placement = topic_entry[0]
             document_feature_matrix[document][topic_placement] = topic_entry[1]
 
-    # print('Document-Feature Matrix:', lsi_document_feature_matrix)
+    # print('Document-Feature Matrix:')
+    # print('Length:', len(document_feature_matrix))
+    # pprint(document_feature_matrix)
 
     return document_feature_matrix
 
@@ -377,7 +379,7 @@ def save_model(model, model_name, k, rows):
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
 # ------------------------ TRAINING -----------------------
-def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
+def train_latent_model(dictionary, corpus, number_of_topics, latent_model_string=''):
     r"""Latent Model Training
 
     Description
@@ -394,7 +396,7 @@ def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
         The number of topics to do LSI on.
     number_of_topics : integer
         Number of topics to train the LSI model on.
-    model_type : str
+    latent_model_string : str
         The string for the type of model. Can be either 'lsi' or 'lda', respectively.
 
     Returns
@@ -406,11 +408,11 @@ def train_latent_model(dictionary, corpus, number_of_topics, model_type=''):
         The LDA model that will be used to create a document-feature matrix from.
     """
 
-    if model_type == 'lsi':
+    if latent_model_string == 'lsi':
         lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
         return lsi_model
 
-    elif model_type == 'lda':
+    elif latent_model_string == 'lda':
         lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
         return lda_model
 
@@ -617,9 +619,10 @@ def get_latent_dictionary_and_corpus(document_collection):
     # 2. Removing very rare words, such as rare acronyms or specific names that don't carry much meaning.
     document_number = len(document_collection)
     percentage = .20
-    dictionary.filter_extremes(no_below=document_number * percentage, no_above=0.50)
+    dictionary.filter_extremes(no_above=0.50)
 
     # Practically speaking, having this line of code results in a lower (likely more accurate) disparity value.
+    # From the remaining words, LSI will choose the "semantically significant words."
 
     ###############################################################################
     # Finally, we transform the documents to a vectorized form. We simply compute
@@ -777,12 +780,12 @@ def consolidate(document_collection):
 
 if __name__ == '__main__':
 
-    # ---------------- ALL MODEL TRAINING SETUP ----------------
+    # ---------------- TRAINING SETUP FOR ALL MODELS ----------------
 
-    number_of_documents = 7769
-    document_collection = select_reuters_training_documents(number_of_documents)
+    number_of_training_documents = 200
+    document_collection = select_reuters_training_documents(number_of_training_documents)
 
-    # ---------------- / ALL MODEL TRAINING SETUP ----------------
+    # ---------------- / TRAINING SETUP FOR ALL MODELS ----------------
 
 
 
@@ -801,17 +804,18 @@ if __name__ == '__main__':
 
     # Setup for LSI
     lsi_k = 20
-    print_corpus_selection_settings('lsi', number_of_documents, lsi_k)
+    print_corpus_selection_settings('lsi', number_of_training_documents, lsi_k)
+
+    # Generate an LSI model. (either load existing model or train one from data)
     # lsi_model = load_model('lsi', model_index=0)
+    lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, latent_model_string='lsi')
 
-    # Create LSI document-feature matrices.
-    lsi_model = train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
-    save_model(lsi_model, 'lsi', lsi_k, number_of_documents)
+    # Optional: Save the LSI model.
+    save_model(lsi_model, 'lsi', lsi_k, number_of_training_documents)
 
+    # Create the document-feature matrix.
     lsi_vectorized = vectorize_latent_model(lsi_model, generic_corpus)
-    lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
-
-    # print(lsi_document_feature_matrix)        # Debugging
+    lsi_document_feature_matrix = create_latent_document_feature_matrix(lsi_vectorized, number_of_training_documents, lsi_k)
 
     # ---------------- / LSI ----------------
 
@@ -819,19 +823,20 @@ if __name__ == '__main__':
 
     # ---------------- LDA ----------------
 
-    # # Setup for LDA
-    lda_k = 10
-    print_corpus_selection_settings('lda', number_of_documents, lda_k)
+    # Setup for LDA
+    lda_k = 20
+    print_corpus_selection_settings('lda', number_of_training_documents, lda_k)
 
-    # Create LDA document-feature matrix.
+    # Generate an LDA model. (either load existing model or train one from data)
     # lda_model = load_model('lda', model_index=0)
-    lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, model_type='lda')
-    save_model(lda_model, 'lda', lda_k, number_of_documents)
+    lda_model = train_latent_model(generic_dictionary, generic_corpus, lda_k, latent_model_string='lda')
 
+    # Optional: Save the LDA model.
+    save_model(lda_model, 'lda', lda_k, number_of_training_documents)
+
+    # Create the document-feature matrix.
     lda_vectorized = vectorize_latent_model(lda_model, generic_corpus)
-    lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_documents, lda_k)
-
-    # print(lda_document_feature_matrix)        # Debugging
+    lda_document_feature_matrix = create_latent_document_feature_matrix(lda_vectorized, number_of_training_documents, lda_k)
 
     # ---------------- / LDA ----------------
 
@@ -884,22 +889,22 @@ if __name__ == '__main__':
     # ---------------- SAVE DOCUMENT-FEATURE MATRICES ----------------
 
     # Save document-feature matrices to a file.
-    save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
-    save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
-    # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
-    # save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
-
-    # ---------------- / SAVE DOCUMENT-FEATURE MATRICES ----------------
-
-
-
-    # ------------------- PROCRUSTES ANALYSIS -------------------
-
-    # Modified Procrustes Analysis
-    matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
-    save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k, 'lsi', 'lda')
-
-    # Print analysis results to screen.
-    # print_modified_procrustes(matrix1, matrix2, disparity)
-
-    # ------------------- / PROCRUSTES ANALYSIS -------------------
+    # save_document_feature_matrix_to_file(lsi_document_feature_matrix, 'lsi', lsi_k)
+    # save_document_feature_matrix_to_file(lda_document_feature_matrix, 'lda', lda_k)
+    # # save_document_feature_matrix_to_file(doc2vec_document_feature_matrix, 'doc2vec', doc2vec_k)
+    # # save_document_feature_matrix_to_file(bert_document_feature_matrix, 'bert', bert_k)
+    #
+    # # ---------------- / SAVE DOCUMENT-FEATURE MATRICES ----------------
+    #
+    #
+    #
+    # # ------------------- PROCRUSTES ANALYSIS -------------------
+    #
+    # # Modified Procrustes Analysis
+    # matrix1, matrix2, disparity = modified_procrustes(lsi_document_feature_matrix, lda_document_feature_matrix)
+    # save_procrustes_analyses_to_folder(matrix1, matrix2, disparity, lsi_k, lda_k, 'lsi', 'lda')
+    #
+    # # Print analysis results to screen.
+    # # print_modified_procrustes(matrix1, matrix2, disparity)
+    #
+    # # ------------------- / PROCRUSTES ANALYSIS -------------------
