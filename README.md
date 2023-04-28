@@ -184,14 +184,14 @@ These three folders contain all of the output from this module. The ellipses den
 
 - A note about the document_collection variable:
 
-document_collection MUST be a list such that:
--Each entry (row) in the list represents a document.
--Each entry in each row is a string for each word.
--Some examples on the internet show each corpus with many long strings representing a document, but the reuters corpus skips this step and separates them into words automaticaly.
+document_collection MUST be a list such that:  
+-Each entry (row) in the list represents a document.  
+-Each entry in each row is a string for each word.  
+-Some examples on the internet show each corpus with many long strings representing a document, but the reuters corpus skips this step and separates them into words automaticaly.  
 
 Example:
-[['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],
-['COMPUTER', 'TERMINAL', 'SYSTEMS', '&', 'lt', ';', ...],
-['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],
-['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],
+[['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],  
+['COMPUTER', 'TERMINAL', 'SYSTEMS', '&', 'lt', ';', ...],  
+['N', '.', 'Z', '.', 'TRADING', 'BANK', 'DEPOSIT', ...],  
+['NATIONAL', 'AMUSEMENTS', 'AGAIN', 'UPS', 'VIACOM', ...],  
 
