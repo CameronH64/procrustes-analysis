@@ -1,8 +1,7 @@
 # Procrustes Analysis
 
-This python module is simply a bunch of functions that can be used for data science purposes. The module can be imported into a Python project quite fast and easily. It is advised to form your own experiments, and simply use these functions to accomplish that. The code under \_\_name\_\_ == \_\_main\_\_ is not meant to be used. Rather, it is simply my testing code for developing the module. It can also be taken as examples of how to use the functions. It's just not the be-all, end-all for how the module's functions should be used.
-
-See, when the module is imported, the entire code within the module itself will run. This is not always ideal. Therefore, \_\_name\_\_ == \_\_main\_\_ removes this "auto-run" feature of sorts, which allows for using the functions directly.
+#### Introduction
+The objective of this Python module is to generate document-feature matrices from LSI, LDA, Doc2Vec, and BERT. Then, with those document-feature matrices, compare them using Procrustes analysis. The outputted value, the disparity is a measure of how similar (or not) the two are. You can specify how many documents (training or testing) to analyze, as well as a k value for any of these models. This information will be displayed in the generated names for these files.
 
 This Python file has a variety of functions for these purposes:
 - Preparation of a Reuters corpus.
@@ -182,12 +181,17 @@ These three folders contain all of the output from this module. The ellipses den
 
 - Python has a help() function that you can use. You can put in any function name from procrustes_analysis, and it'll print out the docstring. This is more useful in something like JupyterLab because you can directly read the docstrings in the code, but it's a feature nonetheless.
 
+- The code under if\_\_name\_\_ == '\_\_main\_\_' is simply my testing code for developing the module; it's not meant to be the only way to use this module. It is advised to form your own experiments, and simply use these functions to accomplish that.
+See, when the module is imported, the entire code within the module itself will run. This is not always desirable. Therefore, if \_\_name\_\_ == '\_\_main\_\_' removes this "auto-run" feature of sorts, which allows for using the functions directly. That's why this code is great for testing. Although it's there, it won't run when importing the module, making the code essentially invisible. This is just one of Python's interesting features.
+
+- LSI and LDA, Doc2Vec, and BERT have to have separate functions for their categories because they take in different arguments. That's why I couldn't make a "one size fits all" function to "train" a model. The model would've been very convoluted and confusing. However, the functions are organized by category, shown by comment headers.
+
 - A note about the document_collection variable:
 
 document_collection MUST be a list such that:  
 -Each entry (row) in the list represents a document.  
 -Each entry in each row is a string for each word.  
--Some examples on the internet show each corpus with many long strings representing a document, but the reuters corpus skips this step and separates them into words automaticaly.  
+-Some examples on the internet show each corpus with many long strings representing a document, but the reuters corpus skips this step and separates them into words automaticaly. That's why there's a consolidate function. The format to use for input depends on the model being used.
 
 Example:
 [['BAHIA', 'COCOA', 'REVIEW', 'Showers', 'continued', ...],  
