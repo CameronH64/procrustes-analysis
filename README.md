@@ -63,16 +63,15 @@ Even though you *can* use these functions in any order after importing, these fu
 ### 1. Setup (this is consistent for all models):
 Determine the number of documents for each model to analyze (these are the rows in the document-feature matrices)
 
-    number_of_documents = 50
-    document_collection = pa.select_reuters_training_documents(number_of_documents)
+    number_of_training_documents = 100
+    document_collection = pa.select_reuters_training_documents(number_of_training_documents)
 
 ### 2.a. LSI/LDA
 First, set a k value for the model training (this value is the number features).
 
     lsi_k = 20
-    pa.print_corpus_selection_settings(number_of_documents, lsi_k)
 
-Second, generate a generic dictionary and generic corpus for LSI/LDA (you only need to do this once. Then, you can simply use these variables for LSI/LDA later on).
+Second, generate a generic dictionary and generic corpus for LSI/LDA.
 
     generic_dictionary, generic_corpus = pa.get_latent_dictionary_and_corpus(document_collection)
 
@@ -80,33 +79,38 @@ Lastly, generate the document-feature matrices:
 
     lsi_model = pa.train_latent_model(generic_dictionary, generic_corpus, lsi_k, model_type='lsi')
     lsi_vectorized = pa.vectorize_latent_model(lsi_model, generic_corpus)
-    lsi_document_feature_matrix = pa.create_latent_document_feature_matrix(lsi_vectorized, number_of_documents, lsi_k)
+    lsi_document_feature_matrix = pa.create_latent_document_feature_matrix(lsi_vectorized, number_of_training_documents, lsi_k)
 
 You now have the document-feature matrix that can be used for Procrustes Analysis.
 
 ### 2.b. Doc2Vec
-First, set up Doc2Vec.
+First, set a k value for training.
 
-    doc2vec_k = 10
+    doc2vec_k = 100
+
+Then, generate the tagged tokens for the Doc2Vec model.
+
     doc2vec_tagged_tokens = pa.get_tagged_document(document_collection)
-    doc2vec_model = pa.train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
     
 Then, train the model.
 
-    doc2vec_model = pa.load_model('doc2vec', model_index=0)
+    doc2vec_model = pa.train_doc2vec(doc2vec_tagged_tokens, vector_size=doc2vec_k, epochs=50)
 
-Create Doc2Vec document-feature matrices.
+Finally, create the Doc2Vec document-feature matrix.
 
     doc2vec_document_feature_matrix = pa.create_doc2vec_document_feature_matrix(doc2vec_model, doc2vec_k, document_collection)
 
 ### 2.c. BERT
 
-First, set up BERT.
+First, set a k value for training.
 
     bert_k = 10
+
+Then, generate the BERT model.
+
     bert_model = pa.train_bert(document_collection, bert_k, verbose=True)
     
-Then, create its document-feature matrix.
+Finally, create the BERT document-feature matrix.
 
     bert_document_feature_matrix = pa.create_bert_document_feature_matrix(bert_model, document_collection)
 
@@ -116,7 +120,7 @@ Then, create its document-feature matrix.
     matrix1, matrix2, disparity = pa.modified_procrustes(lsi_document_feature_matrix, lsi_document_feature_matrix)
 
 ## Optional Steps:
-These aren't optional in the sense that they're not important. They're a very important features of the module. They just don't have to be done in any particular order. Although, they do each have their own preconditions.
+These aren't optional in the sense that they're not important. They're very important features of the module. They just don't have to be done in any particular order. Bear in mind they do each have their own preconditions.
 
 ### Save Procrustes Analysis to File (Optional):
 Preconditions:  
