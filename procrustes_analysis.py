@@ -1,12 +1,6 @@
 # --------------------- DESCRIPTION ---------------------
 # Author: Cameron Holbrook
 # Purpose: Perform Procrustes analysis on document-feature matrices from two text analysis models.
-# Very high level process:
-
-# 1. Define number of documents to analyze (this is the rows, N)
-# 2. Do text analysis on those documents, and get its respective matrix.
-# 3. Do procrustes analysis.
-# -------------------------------------------------------
 
 
 
@@ -16,12 +10,12 @@
 import os
 import nltk
 import numpy as np
-from pprint import pprint               # For neater printing of information
+from pprint import pprint
 from datetime import datetime
 
 # Semantic model imports
-from bertopic import BERTopic
 from nltk.corpus import reuters         # For importing the Reuters dataset (nltk.download('reuters'))
+from bertopic import BERTopic
 from scipy.spatial import procrustes
 from nltk.stem.wordnet import WordNetLemmatizer
 from gensim.corpora import Dictionary
@@ -32,95 +26,106 @@ from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 
 
 
-# ----------------------- PRINTING -----------------------
-def print_vectorized_corpus(vectorized_corpus, model_name):
-    r"""Simplified Vectorized Corpus Print
+# ------------------------ TRAINING -----------------------
+def train_latent_model(dictionary, corpus, number_of_topics, latent_model_string=''):
+    r"""Latent Model Training
+
+    Description
+    -----------
+    Having these two models in their separate functions is silly when they're each so simple
+    and take the same parameters. So, I combined them into one function. To train one model
+    or the other, input the correct model_type string.
 
     Parameters
     ----------
-    vectorized_corpus : gensim object
-        The Gensim object in which each row represents a document, and each
-        column represents a latent feature and the document's rating.
-    model_name : string
-        Shows which model's vectorized corpus is being used.
-
-    Returns
-    -------
-    None : N/A
-
-    Notes
-    -----
-    This is only a debugging-type function for printing to the screen.
-    """
-
-    print(f'------------------- {model_name} Vectorized Corpus -------------------')
-    for count, value in enumerate(vectorized_corpus):
-        print(f'Document {count + 1}: ', end='')
-        print(value)
-    print('-----------------------------------------------------------')
-
-
-def print_modified_procrustes(matrix1, matrix2, disparity):
-    r"""Simplified Vectorized Corpus Print
-
-    Parameters
-    ----------
-    matrix1 : numpy array
-        The first document-feature matrix to be printed.
-    matrix2 : numpy array
-        The second document-feature matrix to be printed.
-    disparity : float
-        The M^2 value that denotes disparity to be printed.
-
-    Returns
-    -------
-    None : N/A
-    """
-
-    print()
-
-    print('------------------- Matrix 1 -------------------')
-
-    for count, document in enumerate(matrix1):
-        print(f'Document: {count + 1}', document)
-        print()
-
-    print()
-
-    print('------------------- Matrix 2 -------------------')
-    for count, document in enumerate(matrix2):
-        print(f'Document {count + 1}:', document)
-        print()
-
-    print()
-
-    print('--------------------- Disparity ---------------------')
-    print(str(disparity))
-
-
-def print_corpus_selection_settings(model_string, number_of_documents, number_of_topics):
-    r"""Text Analysis Settings Print
-
-    Parameters
-    ----------
-    model_string : str
-        The string for the name of the model settings being printed.
-    number_of_documents : integer
-        The number of documents analyzed to be printed.
+    dictionary : 2D list
+        A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
+    corpus : list
+        The number of topics to do LSI on.
     number_of_topics : integer
-        The number of topics analyzed to be printed.
+        Number of topics to train the LSI model on.
+    latent_model_string : str
+        The string for the type of model. Can be either 'lsi' or 'lda', respectively.
 
     Returns
     -------
-    None : N/A
+    lsi_model : LsiModel
+        The LSI model that will be used to create a document-feature matrix from.
+    OR
+    lda_model : LdaModel
+        The LDA model that will be used to create a document-feature matrix from.
     """
 
-    print(f'--------------- {model_string.upper()} SETTINGS ---------------')
-    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
-    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
-    for value in range(len(f'--------------- {model_string.upper()} SETTINGS ---------------')):
-        print('-', end='')
-    print()
+    if latent_model_string == 'lsi':
+        lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
+        return lsi_model
+
+    elif latent_model_string == 'lda':
+        lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
+        return lda_model
+
+
+def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
+    r"""Doc2Vec Training
+
+    Parameters
+    ----------
+    model_tokens : list
+        The tokens of the document_collection.
+    vector_size : int
+        The size of vector to train doc2vec with. This will also be the output of each document vector.
+    alpha : float
+        Controls the learning rate during model training.
+    epochs : int
+        The number of passes to analyze the corpus.
+    Returns
+    -------
+    doc2vec_model : doc2vec model
+        The doc2vec model that will be used to create a document-feature matrix from.
+    """
+
+    doc2vec_model = Doc2Vec(vector_size=vector_size, window=2, min_count=2, epochs=epochs, alpha=alpha)
+    doc2vec_model.build_vocab(model_tokens)
+
+    # print('DOC2VEC Model Training: START')
+    doc2vec_model.train(model_tokens, total_examples=doc2vec_model.corpus_count, epochs=doc2vec_model.epochs)
+    # print('Epochs: {} \tTraining loss: {}'.format(mdl.epochs, mdl.get_latest_training_loss()))
+    # print('DOC2VEC Model Training: END')
+
+    return doc2vec_model
+
+
+def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=False):
+    r"""BERT Training using BERTopic
+
+    Parameters
+    ----------
+    document_collection : 2D list
+        The selected Reuters documents.
+    number_of_topics : int
+        The number of topics to find.
+    min_topic_size : int
+        The minimum size of the topic. Increasing this value will lead to a lower number of clusters/topics.
+    verbose : bool
+        A boolean that determines if BERTopic training debugging will show.
+
+    Returns
+    -------
+    bert_model : bert model
+        The bert model that will be used to create a document-feature matrix from.
+    """
+
+    # Turns the 2D list of words into a 1D list of strings, constructed from all those words and separated with spaces.
+    document_collection = consolidate(document_collection)
+
+    # Build the BERT model.
+    bert_model = BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size,
+                          calculate_probabilities=True, verbose=verbose)
+
+    # Fine-tune the BERT model with the Reuters corpus.
+    bert_model.fit(document_collection)
+
+    return bert_model
 
 # ----------------------- CREATING DOCUMENT FEATURE MATRICES -----------------------
 def create_latent_document_feature_matrix(vectorization, number_of_documents, number_of_topics):
@@ -378,106 +383,95 @@ def save_model(model, model_name, k, rows):
 
     model.save(os.path.join(path, model_name, model_folder, model_folder+"."+model_name))
 
-# ------------------------ TRAINING -----------------------
-def train_latent_model(dictionary, corpus, number_of_topics, latent_model_string=''):
-    r"""Latent Model Training
-
-    Description
-    -----------
-    Having these two models in their separate functions is silly when they're each so simple
-    and take the same parameters. So, I combined them into one function. To train one model
-    or the other, input the correct model_type string.
+# ----------------------- PRINTING -----------------------
+def print_vectorized_corpus(vectorized_corpus, model_name):
+    r"""Simplified Vectorized Corpus Print
 
     Parameters
     ----------
-    dictionary : 2D list
-        A 2D list in which each row is a complete Reuters document, and each entry contains one word from it.
-    corpus : list
-        The number of topics to do LSI on.
+    vectorized_corpus : gensim object
+        The Gensim object in which each row represents a document, and each
+        column represents a latent feature and the document's rating.
+    model_name : string
+        Shows which model's vectorized corpus is being used.
+
+    Returns
+    -------
+    None : N/A
+
+    Notes
+    -----
+    This is only a debugging-type function for printing to the screen.
+    """
+
+    print(f'------------------- {model_name} Vectorized Corpus -------------------')
+    for count, value in enumerate(vectorized_corpus):
+        print(f'Document {count + 1}: ', end='')
+        print(value)
+    print('-----------------------------------------------------------')
+
+
+def print_modified_procrustes(matrix1, matrix2, disparity):
+    r"""Simplified Vectorized Corpus Print
+
+    Parameters
+    ----------
+    matrix1 : numpy array
+        The first document-feature matrix to be printed.
+    matrix2 : numpy array
+        The second document-feature matrix to be printed.
+    disparity : float
+        The M^2 value that denotes disparity to be printed.
+
+    Returns
+    -------
+    None : N/A
+    """
+
+    print()
+
+    print('------------------- Matrix 1 -------------------')
+
+    for count, document in enumerate(matrix1):
+        print(f'Document: {count + 1}', document)
+        print()
+
+    print()
+
+    print('------------------- Matrix 2 -------------------')
+    for count, document in enumerate(matrix2):
+        print(f'Document {count + 1}:', document)
+        print()
+
+    print()
+
+    print('--------------------- Disparity ---------------------')
+    print(str(disparity))
+
+
+def print_corpus_selection_settings(model_string, number_of_documents, number_of_topics):
+    r"""Text Analysis Settings Print
+
+    Parameters
+    ----------
+    model_string : str
+        The string for the name of the model settings being printed.
+    number_of_documents : integer
+        The number of documents analyzed to be printed.
     number_of_topics : integer
-        Number of topics to train the LSI model on.
-    latent_model_string : str
-        The string for the type of model. Can be either 'lsi' or 'lda', respectively.
+        The number of topics analyzed to be printed.
 
     Returns
     -------
-    lsi_model : LsiModel
-        The LSI model that will be used to create a document-feature matrix from.
-    OR
-    lda_model : LdaModel
-        The LDA model that will be used to create a document-feature matrix from.
+    None : N/A
     """
 
-    if latent_model_string == 'lsi':
-        lsi_model = LsiModel(corpus, id2word=dictionary, num_topics=number_of_topics)
-        return lsi_model
-
-    elif latent_model_string == 'lda':
-        lda_model = LdaModel(corpus, id2word=dictionary, num_topics=number_of_topics)
-        return lda_model
-
-
-def train_doc2vec(model_tokens, vector_size=10, alpha=0.1, epochs=100):
-    r"""Doc2Vec Training
-
-    Parameters
-    ----------
-    model_tokens : list
-        The tokens of the document_collection.
-    vector_size : int
-        The size of vector to train doc2vec with. This will also be the output of each document vector.
-    alpha : float
-        Controls the learning rate during model training.
-    epochs : int
-        The number of passes to analyze the corpus.
-    Returns
-    -------
-    doc2vec_model : doc2vec model
-        The doc2vec model that will be used to create a document-feature matrix from.
-    """
-
-    doc2vec_model = Doc2Vec(vector_size=vector_size, window=2, min_count=2, epochs=epochs, alpha=alpha)
-    doc2vec_model.build_vocab(model_tokens)
-
-    # print('DOC2VEC Model Training: START')
-    doc2vec_model.train(model_tokens, total_examples=doc2vec_model.corpus_count, epochs=doc2vec_model.epochs)
-    # print('Epochs: {} \tTraining loss: {}'.format(mdl.epochs, mdl.get_latest_training_loss()))
-    # print('DOC2VEC Model Training: END')
-
-    return doc2vec_model
-
-
-def train_bert(document_collection, number_of_topics, min_topic_size=5, verbose=False):
-    r"""BERT Training using BERTopic
-
-    Parameters
-    ----------
-    document_collection : 2D list
-        The selected Reuters documents.
-    number_of_topics : int
-        The number of topics to find.
-    min_topic_size : int
-        The minimum size of the topic. Increasing this value will lead to a lower number of clusters/topics.
-    verbose : bool
-        A boolean that determines if BERTopic training debugging will show.
-
-    Returns
-    -------
-    bert_model : bert model
-        The bert model that will be used to create a document-feature matrix from.
-    """
-
-    # Turns the 2D list of words into a 1D list of strings, constructed from all those words and separated with spaces.
-    document_collection = consolidate(document_collection)
-
-    # Build the BERT model.
-    bert_model = BERTopic(nr_topics=number_of_topics, min_topic_size=min_topic_size,
-                          calculate_probabilities=True, verbose=verbose)
-
-    # Fine-tune the BERT model with the Reuters corpus.
-    bert_model.fit(document_collection)
-
-    return bert_model
+    print(f'--------------- {model_string.upper()} SETTINGS ---------------')
+    print(f'{"Number of Documents:":>24} {number_of_documents:>6}')
+    print(f'{"Number of Topics:":>24} {number_of_topics:>6}')
+    for value in range(len(f'--------------- {model_string.upper()} SETTINGS ---------------')):
+        print('-', end='')
+    print()
 
 # ----------------------- MISCELLANEOUS -----------------------
 def select_reuters_training_documents(number_of_documents):
@@ -496,7 +490,7 @@ def select_reuters_training_documents(number_of_documents):
 
     # There are 3,019 test documents, and 7,769 training documents.
 
-    if number_of_documents > 7769: number_of_documents = 7769
+    if number_of_documents > 7769: number_of_documents = 7769       # If the user enters a number out of range, the
     elif number_of_documents < 0: number_of_documents = 0
 
     training_documents = reuters.fileids()[3019:]       # Retrieve only Reuters training documents. (0 to 3018 equals 3019 total) So, retrieve everything after that.
